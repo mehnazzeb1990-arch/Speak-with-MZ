@@ -4,7 +4,7 @@ import { History, Play, MessageSquare, Clock, Award } from 'lucide-react';
 export const ConversationHistoryView: React.FC<{ onNavigate: (v: string) => void }> = ({ onNavigate }) => {
   const pastSessions = [
     { id: 's1', date: 'Today, 2:30 PM', scenario: 'Job Interview Simulation', partner: 'Alex Sterling', duration: '12 mins', score: 90, corrections: 2 },
-    { id: 's2', date: 'Yesterday, 6:15 PM', scenario: 'Coffee Shop Order', partner: 'MZ (Mehnaz)', duration: '8 mins', score: 94, corrections: 1 },
+    { id: 's2', date: 'Yesterday, 6:15 PM', scenario: 'Coffee Shop Order', partner: 'Coach MZ', duration: '8 mins', score: 94, corrections: 1 },
     { id: 's3', date: 'Jul 28, 2026', scenario: 'Free Conversation', partner: 'Sarah Jenkins', duration: '15 mins', score: 86, corrections: 3 },
   ];
 

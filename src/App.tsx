@@ -95,7 +95,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#F7F5FC] dark:bg-slate-950 text-[#312E81] dark:text-slate-100 transition-colors duration-200 selection:bg-[#4F46E5] selection:text-white">
       <Header currentView={currentView} onNavigate={setCurrentView} />
       <main className="flex-1">
         {renderCurrentView()}

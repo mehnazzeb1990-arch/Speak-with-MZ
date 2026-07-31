@@ -16,7 +16,7 @@ const BEGINNER_TOPICS_CATALOG: CurriculumTopic[] = [
       verbs: [
         { word: 'Greet', partOfSpeech: 'verb', meaning: 'To welcome someone with words or actions', phonetic: '/ɡriːt/', example: 'I greet my colleagues every morning with a smile.' },
         { word: 'Introduce', partOfSpeech: 'verb', meaning: 'To tell someone another person’s name when they meet', phonetic: '/ˌɪn.trəˈdjuːs/', example: 'Let me introduce you to my manager.' },
-        { word: 'Meet', partOfSpeech: 'verb', meaning: 'To see and speak to someone for the first time', phonetic: '/miːt/', example: 'Nice to meet you, Mehnaz!' },
+        { word: 'Meet', partOfSpeech: 'verb', meaning: 'To see and speak to someone for the first time', phonetic: '/miːt/', example: 'Nice to meet you!' },
         { word: 'Share', partOfSpeech: 'verb', meaning: 'To give a part of something to others or state personal details', phonetic: '/ʃeər/', example: 'I will share my contact information.' },
         { word: 'Listen', partOfSpeech: 'verb', meaning: 'To pay attention to sound or speech', phonetic: '/ˈlɪs.ən/', example: 'Listen carefully when someone introduces themselves.' },
         { word: 'Smile', partOfSpeech: 'verb', meaning: 'To form a pleased facial expression', phonetic: '/smaɪl/', example: 'A polite smile makes introductions warmer.' },
@@ -46,8 +46,8 @@ const BEGINNER_TOPICS_CATALOG: CurriculumTopic[] = [
       ],
       conversation: [
         { speaker: 'MZ (AI Partner)', text: "Hello! Welcome to our speaking practice. My name is MZ. What's your name?" },
-        { speaker: 'Learner', text: "Hi MZ! My name is Mehnaz. It's nice to meet you." },
-        { speaker: 'MZ (AI Partner)', text: "Nice to meet you too, Mehnaz! Where are you joining us from today?" },
+        { speaker: 'Learner', text: "Hi MZ! It's nice to meet you." },
+        { speaker: 'MZ (AI Partner)', text: "Nice to meet you too! Where are you joining us from today?" },
         { speaker: 'Learner', text: "I am joining from my home office. I am eager to improve my English speaking confidence." },
         { speaker: 'MZ (AI Partner)', text: "Wonderful! What line of work or study are you currently in?" }
       ],

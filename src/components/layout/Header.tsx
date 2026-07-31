@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
           className="flex items-center space-x-3 cursor-pointer group"
           id="brand-logo-button"
         >
-          <div className="w-10 h-10 bg-gradient-to-tr from-indigo-600 via-sky-500 to-cyan-400 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-200">
+          <div className="w-10 h-10 bg-gradient-to-tr from-[#4F46E5] via-[#8B5CF6] to-[#EC4899] rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-200">
             MZ
           </div>
           <div>
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
               <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-600 to-sky-500 dark:from-indigo-400 dark:to-sky-300 bg-clip-text text-transparent">MZ</span>
             </div>
             <span className="text-[10px] uppercase font-semibold tracking-wider text-indigo-600 dark:text-sky-300 block -mt-1">
-              AI English Partner
+              AI English Coach
             </span>
           </div>
         </div>

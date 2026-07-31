@@ -2,8 +2,8 @@ import { AIPersona, SpeakingScenario, VocabularyItem, Achievement, NotificationI
 
 export const INITIAL_USER: UserProfile = {
   id: 'usr_default_01',
-  name: 'Mehnaz Zeb',
-  email: 'mehnazzeb1990@gmail.com',
+  name: 'MZ',
+  email: 'mz.user@example.com',
   avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
   country: 'United States',
   nativeLanguage: 'Spanish',
@@ -23,7 +23,7 @@ export const INITIAL_USER: UserProfile = {
 export const AI_PERSONAS: AIPersona[] = [
   {
     id: 'mz_standard',
-    name: 'MZ (Mehnaz)',
+    name: 'Coach MZ',
     role: 'Lead English Coach',
     accent: 'American (Neutral)',
     avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300',

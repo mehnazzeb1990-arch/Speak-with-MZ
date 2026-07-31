@@ -38,7 +38,7 @@ export const RegisterView: React.FC<{ onNavigate: (v: string) => void }> = ({ on
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              placeholder="e.g. Mehnaz Zeb"
+              placeholder="e.g. Alex Smith"
               className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm outline-none"
             />
           </div>

@@ -18,7 +18,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({ plan, 
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [expDate, setExpDate] = useState('12/28');
   const [cvc, setCvc] = useState('987');
-  const [name, setName] = useState('Mehnaz Zeb');
+  const [name, setName] = useState('MZ User');
   const [accountNumber, setAccountNumber] = useState('0300 1234567');
   const [success, setSuccess] = useState(false);
 
