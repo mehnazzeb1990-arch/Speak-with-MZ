@@ -1,5 +1,24 @@
 export type EnglishLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 export type SubscriptionPlan = 'free' | 'intermediate_premium' | 'advanced_premium';
+export type Currency = 'USD' | 'PKR';
+
+export interface PaymentRecord {
+  id: string;
+  invoiceId: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  plan: SubscriptionPlan;
+  planName: string;
+  amountUSD: number;
+  amountPKR: number;
+  currencyUsed: Currency;
+  paymentMethod: 'Visa' | 'Mastercard' | 'Pakistani Debit Card (1Link/PayPak)' | 'HBL Bank' | 'Meezan Bank' | 'JazzCash' | 'EasyPaisa' | 'International Card';
+  cardLast4?: string;
+  date: string;
+  status: 'paid' | 'refunded' | 'pending' | 'failed';
+  receiptUrl?: string;
+}
 
 export interface UserProfile {
   id: string;
@@ -16,7 +35,8 @@ export interface UserProfile {
   vocabularyLearned: number;
   conversationsCompleted: number;
   subscriptionPlan: SubscriptionPlan;
-  subscriptionStatus: 'active' | 'inactive' | 'trial';
+  subscriptionStatus: 'active' | 'inactive' | 'trial' | 'canceled';
+  autoRenew?: boolean;
   renewalDate?: string;
   createdAt: string;
 }

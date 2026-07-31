@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { CurriculumTopic, EnglishLevel } from '../../types';
 import { BEGINNER_TOPICS, INTERMEDIATE_TOPICS, ADVANCED_TOPICS } from '../../data/curriculumData';
 import { TopicDetailView } from './TopicDetailView';
+import { AdBanner } from '../common/AdBanner';
 import { 
   BookOpen, 
   Search, 
@@ -66,6 +67,9 @@ export const CurriculumHubView: React.FC<CurriculumHubViewProps> = ({ onNavigate
   return (
     <div id="curriculum-hub-page" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       
+      {/* Free Plan Advertisement Placement */}
+      <AdBanner onNavigate={onNavigate} />
+
       {/* Header Banner */}
       <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white shadow-xl space-y-4 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />

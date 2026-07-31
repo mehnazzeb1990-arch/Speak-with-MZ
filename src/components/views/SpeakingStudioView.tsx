@@ -5,6 +5,7 @@ import { elevenLabsService } from '../../services/elevenlabs';
 import { DEFAULT_AI_VOICE } from '../../config/voice';
 import { ConversationMessage, GrammarCorrection, AIPersona, SpeakingScenario } from '../../types';
 import { AI_PERSONAS, SPEAKING_SCENARIOS } from '../../data/mockData';
+import { AdBanner } from '../common/AdBanner';
 import { 
   Mic, 
   MicOff, 
@@ -315,6 +316,9 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
   return (
     <div id="speaking-studio-page" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       
+      {/* Free Plan Advertisement Placement */}
+      <AdBanner onNavigate={onNavigate} />
+
       {/* Top Header Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
         
