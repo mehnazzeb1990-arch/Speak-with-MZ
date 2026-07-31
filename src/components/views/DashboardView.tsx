@@ -126,6 +126,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
           
           {/* Recommended Practice Scenarios */}
           <div className="space-y-4">
+            
+            {/* 400 Topics Curriculum Card Banner */}
+            <div 
+              onClick={() => onNavigate('curriculum')}
+              className="p-6 rounded-3xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white shadow-md hover:shadow-xl transition-all cursor-pointer border border-indigo-700/50 flex flex-col sm:flex-row items-center justify-between gap-4 group"
+            >
+              <div className="space-y-2">
+                <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-sky-300 text-xs font-bold border border-indigo-400/30">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>COMPLETE LEARNING CONTENT</span>
+                </div>
+                <h3 className="text-xl font-extrabold tracking-tight group-hover:text-sky-300 transition-colors">
+                  400 Structured English Topics Catalog
+                </h3>
+                <p className="text-xs text-slate-300 max-w-xl">
+                  Explore 200 Beginner (Free), 100 Intermediate (Premium), and 100 Advanced (Premium) lessons with picture descriptions, vocabulary, idioms, mini-games, debates, and presentation practice!
+                </p>
+              </div>
+
+              <button className="px-5 py-2.5 rounded-2xl bg-indigo-600 group-hover:bg-indigo-500 text-white font-bold text-xs shrink-0 flex items-center space-x-2 shadow-md">
+                <span>Browse Topics</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">Recommended Scenarios for You</h2>
               <button 

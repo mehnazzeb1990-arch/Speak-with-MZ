@@ -1,13 +1,46 @@
+import { elevenLabsService } from './elevenlabs';
+import { DEFAULT_AI_VOICE } from '../config/voice';
+
 /**
- * Browser Speech Synthesis and Speech Recognition Service
- * Enables real-time human-like English voice conversation in Speak with MZ.
+ * Integrated Speech Synthesis and Speech Recognition Service for Speak with MZ.
+ * Combines ElevenLabs Conversational Voice API with Browser Speech Recognition & Web Speech API fallback.
  */
 
 class AudioService {
   private recognition: any = null;
   private isListeningState = false;
 
-  public speak(text: string, options: { gender?: 'female' | 'male'; rate?: number; pitch?: number } = {}): Promise<void> {
+  public async speak(
+    text: string,
+    options: {
+      gender?: 'female' | 'male';
+      rate?: number;
+      pitch?: number;
+      volume?: number;
+      voiceId?: string;
+      useElevenLabs?: boolean;
+    } = {}
+  ): Promise<void> {
+    const volume = options.volume !== undefined ? options.volume : 1.0;
+    const rate = options.rate || 1.0;
+
+    // Stop ongoing speech
+    this.stopSpeaking();
+
+    // Try ElevenLabs Neural Speech synthesis first if specified or available
+    if (options.useElevenLabs !== false) {
+      const success = await elevenLabsService.speakText(
+        text,
+        options.voiceId || elevenLabsService.getVoiceId() || DEFAULT_AI_VOICE.voice,
+        volume,
+        rate
+      );
+      if (success) {
+        return;
+      }
+    }
+
+    // High quality Browser Web Speech API fallback
     return new Promise((resolve) => {
       if (!('speechSynthesis' in window)) {
         console.warn('SpeechSynthesis is not supported in this browser environment.');
@@ -15,19 +48,20 @@ class AudioService {
         return;
       }
 
-      window.speechSynthesis.cancel(); // stop current audio
+      window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = options.rate || 1.0;
-      utterance.pitch = options.pitch || (options.gender === 'female' ? 1.1 : 0.95);
+      utterance.rate = rate;
+      utterance.volume = Math.max(0, Math.min(1, volume));
+      utterance.pitch = options.pitch || (options.gender === 'female' ? 1.05 : 0.95);
 
-      // Select natural English voice
       const voices = window.speechSynthesis.getVoices();
       const englishVoices = voices.filter((v) => v.lang.startsWith('en'));
       
       let selectedVoice = englishVoices.find((v) => 
-        options.gender === 'female' ? v.name.toLowerCase().includes('female') || v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Victoria')
-        : v.name.toLowerCase().includes('male') || v.name.includes('Daniel') || v.name.includes('Alex')
+        options.gender === 'female' 
+          ? v.name.toLowerCase().includes('female') || v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Victoria') || v.name.includes('Google US English')
+          : v.name.toLowerCase().includes('male') || v.name.includes('Daniel') || v.name.includes('Alex')
       );
 
       if (!selectedVoice && englishVoices.length > 0) {
@@ -46,6 +80,7 @@ class AudioService {
   }
 
   public stopSpeaking(): void {
+    elevenLabsService.stopPlayback();
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
@@ -58,7 +93,7 @@ class AudioService {
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognitionAPI) {
-      if (onError) onError('Speech recognition is not supported in your browser. Try Chrome, Edge, or Safari.');
+      if (onError) onError('Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.');
       return false;
     }
 
@@ -96,9 +131,13 @@ class AudioService {
       };
 
       this.recognition.onerror = (event: any) => {
-        console.warn('Speech recognition event warning:', event.error);
-        if (onError && event.error !== 'no-speech') {
-          onError(`Speech error: ${event.error}`);
+        console.warn('Speech recognition warning:', event.error);
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          if (onError) onError('Microphone access was denied. Please check browser microphone permissions.');
+        } else if (event.error === 'network') {
+          if (onError) onError('Network error during speech recognition. Please check your connection.');
+        } else if (onError && event.error !== 'no-speech') {
+          onError(`Speech recognition error: ${event.error}`);
         }
       };
 
@@ -127,6 +166,18 @@ class AudioService {
 
   public isListening(): boolean {
     return this.isListeningState;
+  }
+
+  public async getAvailableMicrophones(): Promise<MediaDeviceInfo[]> {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+      return [];
+    }
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices.filter((d) => d.kind === 'audioinput');
+    } catch {
+      return [];
+    }
   }
 }
 

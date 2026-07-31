@@ -9,6 +9,7 @@ import { HomeView } from './components/views/HomeView';
 import { DashboardView } from './components/views/DashboardView';
 import { SpeakingStudioView } from './components/views/SpeakingStudioView';
 import { VocabVaultView } from './components/views/VocabVaultView';
+import { CurriculumHubView } from './components/views/CurriculumHubView';
 import { LearningProgressView } from './components/views/LearningProgressView';
 import { AchievementsView } from './components/views/AchievementsView';
 import { ConversationHistoryView } from './components/views/ConversationHistoryView';
@@ -50,6 +51,8 @@ const AppContent: React.FC = () => {
         return <SpeakingStudioView onNavigate={setCurrentView} />;
       case 'vocab':
         return <VocabVaultView onNavigate={setCurrentView} />;
+      case 'curriculum':
+        return <CurriculumHubView onNavigate={setCurrentView} />;
       case 'progress':
         return <LearningProgressView onNavigate={setCurrentView} />;
       case 'achievements':

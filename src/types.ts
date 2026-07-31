@@ -105,3 +105,84 @@ export interface SpeakingScenario {
   iconName: string;
   suggestedPhrases: string[];
 }
+
+export interface VocabWordDetail {
+  word: string;
+  partOfSpeech?: 'verb' | 'adjective' | 'noun' | 'general' | 'academic';
+  meaning: string;
+  phonetic: string;
+  example: string;
+  collocations?: string[];
+  synonyms?: string[];
+}
+
+export interface IdiomDetail {
+  idiom: string;
+  meaning: string;
+  example: string;
+  practiceQuestion: string;
+  practiceAnswer: string;
+}
+
+export interface ConversationTurn {
+  speaker: string;
+  text: string;
+}
+
+export interface PictureDescriptionTask {
+  imageUrl: string;
+  promptText: string;
+  sampleDescription: string;
+  keywords: string[];
+}
+
+export interface ExerciseQuestion {
+  id: string;
+  type: 'mcq' | 'matching' | 'fill_blank' | 'sentence_builder';
+  question: string;
+  options?: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface TopicContent {
+  conversation: ConversationTurn[];
+  pronunciationSentences: string[];
+  rolePlayScript?: { title: string; prompt: string; turns: ConversationTurn[] };
+  speakingActivity?: { prompt: string; tips: string[] };
+  exercises: ExerciseQuestion[];
+  
+  // Beginner specific (10 verbs, 10 adjectives, Useful expressions, Picture description, Mini games)
+  verbs?: VocabWordDetail[];
+  adjectives?: VocabWordDetail[];
+  usefulExpressions?: string[];
+  pictureDescription?: PictureDescriptionTask;
+  miniGames?: { title: string; type: string; prompt: string; options: string[]; answer: string }[];
+  
+  // Intermediate specific (5 Advanced Vocab with Collocations/Synonyms, 5 Idioms, Discussion, Debates, Case studies)
+  advancedVocab?: VocabWordDetail[];
+  idioms?: IdiomDetail[];
+  discussionQuestions?: string[];
+  opinionsPrompt?: string;
+  caseStudy?: { title: string; scenario: string; keyQuestions: string[] };
+  debate?: { topic: string; proPoints: string[]; conPoints: string[] };
+
+  // Advanced specific (Business/Academic, 5 Academic Vocab, 5 Idioms, Presentation, Critical Analysis)
+  academicVocab?: VocabWordDetail[];
+  advancedIdioms?: IdiomDetail[];
+  presentationPractice?: { topic: string; duration: string; outlinePoints: string[] };
+  criticalAnalysis?: { title: string; articleExcerpt: string; analysisQuestions: string[] };
+}
+
+export interface CurriculumTopic {
+  id: string;
+  topicNumber: number;
+  title: string;
+  level: EnglishLevel;
+  isPremium: boolean;
+  category: string;
+  description: string;
+  estimatedMinutes: number;
+  content: TopicContent;
+}
+

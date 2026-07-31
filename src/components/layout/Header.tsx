@@ -120,6 +120,19 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
                 <BookOpen className="w-4 h-4" />
                 <span>Vocab Vault</span>
               </button>
+
+              <button
+                id="nav-link-curriculum"
+                onClick={() => handleNavClick('curriculum')}
+                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                  currentView === 'curriculum'
+                    ? 'text-indigo-600 dark:text-sky-300 bg-indigo-50 dark:bg-indigo-950/60 font-semibold border border-indigo-100 dark:border-indigo-900/40'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/50'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>400 Topics</span>
+              </button>
             </>
           )}
 
