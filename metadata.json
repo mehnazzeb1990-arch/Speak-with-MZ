@@ -1,0 +1,6 @@
+{
+  "name": "Speak with MZ",
+  "description": "AI-Powered English Speaking Partner for real-time fluency, vocabulary building, pronunciation practice, and grammar feedback.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
