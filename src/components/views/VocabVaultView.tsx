@@ -313,7 +313,91 @@ export const VocabVaultView: React.FC<VocabVaultViewProps> = ({ onNavigate }) =>
         </div>
       </div>
 
-      {/* Main Module Mode Switcher Tabs */}
+      {/* Word of the Day Section */}
+      <div id="word-of-the-day-card" className="p-6 rounded-3xl bg-gradient-to-r from-[#042F2C] via-[#0F766E] to-[#0D9488] text-white border border-[#14B8A6]/40 shadow-xl relative overflow-hidden space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="p-2 rounded-xl bg-[#14B8A6]/30 text-[#F59E0B] border border-[#14B8A6]/40">
+              <Sparkles className="w-4 h-4" />
+            </span>
+            <span className="text-xs font-black uppercase tracking-wider text-teal-200">Word of the Day • {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
+          </div>
+          <span className="px-3 py-1 rounded-full bg-[#14B8A6]/30 text-teal-100 text-[10px] font-black uppercase border border-[#14B8A6]/30">
+            IELTS 8.0 & Executive Ready
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div className="lg:col-span-7 space-y-3">
+            <div className="flex items-center space-x-3">
+              <h2 className="text-3xl font-black text-white tracking-tight">Eloquent</h2>
+              <span className="text-sm font-mono text-teal-200 bg-[#042F2C]/60 px-3 py-1 rounded-full border border-[#14B8A6]/30">
+                /ˈɛləkwənt/
+              </span>
+              <button
+                onClick={() => handlePlayAudio('Eloquent')}
+                className="p-2 rounded-full bg-[#F59E0B] text-slate-950 hover:scale-110 transition-transform shadow-md cursor-pointer"
+                title="Listen Pronunciation"
+              >
+                <Volume2 className="w-4 h-4 fill-slate-950" />
+              </button>
+            </div>
+
+            <p className="text-sm font-semibold text-teal-100 leading-relaxed">
+              <strong className="text-white">Definition:</strong> Fluent or persuasive in speaking or writing; expressing yourself clearly and expressively.
+            </p>
+
+            <div className="p-3.5 rounded-2xl bg-[#042F2C]/50 border border-[#14B8A6]/20 text-xs italic text-teal-100/90 font-medium">
+              "Her eloquent response during the Q&A session impressed the entire executive board."
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 bg-[#042F2C]/60 p-5 rounded-2xl border border-[#14B8A6]/30 space-y-3">
+            <div className="text-xs font-bold text-teal-200">High-Impact Synonyms:</div>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="px-2.5 py-1 rounded-lg bg-[#14B8A6]/20 text-teal-100 font-semibold text-xs border border-[#14B8A6]/30">Articulate</span>
+              <span className="px-2.5 py-1 rounded-lg bg-[#14B8A6]/20 text-teal-100 font-semibold text-xs border border-[#14B8A6]/30">Fluent</span>
+              <span className="px-2.5 py-1 rounded-lg bg-[#14B8A6]/20 text-teal-100 font-semibold text-xs border border-[#14B8A6]/30">Expressive</span>
+              <span className="px-2.5 py-1 rounded-lg bg-[#14B8A6]/20 text-teal-100 font-semibold text-xs border border-[#14B8A6]/30">Persuasive</span>
+            </div>
+
+            <div className="pt-2 flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  const item: VocabularyItem = {
+                    id: `v_word_of_day_${Date.now()}`,
+                    word: 'Eloquent',
+                    phonetic: '/ˈɛləkwənt/',
+                    definition: 'Fluent or persuasive in speaking or writing.',
+                    example: 'Her eloquent response during the Q&A impressed the executive board.',
+                    level: 'Advanced',
+                    category: 'Academic English',
+                    masteryLevel: 1,
+                    isSaved: true,
+                    dateAdded: new Date().toISOString().split('T')[0],
+                    synonyms: ['Articulate', 'Fluent', 'Expressive', 'Persuasive'],
+                    isLearned: false,
+                    isReviewLater: false,
+                  };
+                  addVocabWord(item);
+                }}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#14B8A6] to-[#0F766E] text-white font-black text-xs hover:opacity-95 shadow-md flex items-center justify-center space-x-1.5 cursor-pointer"
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+                <span>Save to Vault</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('speaking')}
+                className="py-2.5 px-3 rounded-xl bg-[#F59E0B] text-slate-950 font-black text-xs hover:bg-amber-400 shadow-md flex items-center justify-center space-x-1 cursor-pointer"
+              >
+                <Mic className="w-3.5 h-3.5" />
+                <span>Practice</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="flex items-center space-x-2 border-b border-[#CBDED9] pb-3 overflow-x-auto">
         <button
           onClick={() => setActiveTab('flashcards')}
