@@ -317,36 +317,36 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               
               {/* 5 Vocabulary Words */}
               <div className="space-y-3">
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-white flex items-center space-x-2">
-                  <BookOpen className="w-5 h-5 text-indigo-500" />
+                <h3 className="font-extrabold text-base text-[#134E4A] flex items-center space-x-2">
+                  <BookOpen className="w-5 h-5 text-[#0F766E]" />
                   <span>5 {topic.level === 'Advanced' ? 'Academic' : 'Advanced'} Vocabulary Words</span>
                 </h3>
 
                 <div className="space-y-3">
                   {(topic.content.academicVocab || topic.content.advancedVocab || []).map((word, i) => (
-                    <div key={i} className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                    <div key={i} className="p-5 rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] shadow-sm space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center space-x-3">
-                          <span className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 font-bold text-xs flex items-center justify-center">
+                          <span className="w-7 h-7 rounded-full bg-[#DCEDE9] text-[#0F766E] font-bold text-xs flex items-center justify-center border border-[#CBDED9]">
                             {i + 1}
                           </span>
-                          <h4 className="font-extrabold text-lg text-slate-900 dark:text-white">{word.word}</h4>
-                          <span className="text-xs font-mono text-slate-400">{word.phonetic}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-sky-300 font-bold uppercase">
+                          <h4 className="font-extrabold text-lg text-[#134E4A]">{word.word}</h4>
+                          <span className="text-xs font-mono text-teal-800/60">{word.phonetic}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#DCEDE9] text-[#0F766E] font-bold uppercase border border-[#CBDED9]">
                             {word.partOfSpeech || 'vocab'}
                           </span>
                         </div>
 
                         <button
                           onClick={() => handleSpeakText(`${word.word}. ${word.example}`)}
-                          className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-sky-300 font-bold text-xs flex items-center space-x-1 hover:bg-indigo-100"
+                          className="px-3 py-1.5 rounded-xl bg-[#DCEDE9] text-[#0F766E] font-bold text-xs flex items-center space-x-1 hover:bg-[#CBDED9] border border-[#CBDED9] cursor-pointer"
                         >
                           <Volume2 className="w-4 h-4" />
                           <span>Listen Audio</span>
                         </button>
                       </div>
 
-                      <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">{word.meaning}</p>
+                      <p className="text-xs text-[#134E4A] font-medium">{word.meaning}</p>
                       
                       <p className="text-xs text-slate-600 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
                         Example: "{word.example}"
@@ -519,10 +519,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
       {/* TAB 4: PICTURE DESCRIPTION */}
       {activeTab === 'picture' && (
-        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+        <div className="p-6 rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] shadow-sm space-y-6">
           <div className="flex items-center space-x-2">
-            <ImageIcon className="w-5 h-5 text-indigo-500" />
-            <h3 className="font-bold text-base text-slate-900 dark:text-white">Interactive Picture Description</h3>
+            <ImageIcon className="w-5 h-5 text-[#0F766E]" />
+            <h3 className="font-bold text-base text-[#134E4A]">Interactive Picture Description</h3>
           </div>
 
           {topic.content.pictureDescription ? (
@@ -530,18 +530,18 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               
               {/* Image Column */}
               <div className="md:col-span-5 space-y-3">
-                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md">
+                <div className="rounded-2xl overflow-hidden border border-[#CBDED9] shadow-md">
                   <img
                     src={topic.content.pictureDescription.imageUrl}
                     alt="Lesson Illustration"
                     className="w-full h-56 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs text-slate-600 dark:text-slate-400">
-                  <span className="font-bold text-slate-900 dark:text-white block mb-1">Target Keywords to include:</span>
+                <div className="p-3 rounded-xl bg-[#F3F7F6] text-xs text-[#134E4A] border border-[#CBDED9]">
+                  <span className="font-bold text-[#134E4A] block mb-1">Target Keywords to include:</span>
                   <div className="flex flex-wrap gap-1">
                     {topic.content.pictureDescription.keywords.map((kw, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-sky-300 text-[10px] font-bold">
+                      <span key={i} className="px-2 py-0.5 rounded bg-[#DCEDE9] text-[#0F766E] text-[10px] font-bold border border-[#CBDED9]">
                         #{kw}
                       </span>
                     ))}
@@ -552,7 +552,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               {/* Description Input & AI Feedback Column */}
               <div className="md:col-span-7 space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  <label className="text-xs font-bold text-[#134E4A] block">
                     {topic.content.pictureDescription.promptText}
                   </label>
                   <textarea
@@ -560,29 +560,29 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                     value={pictureInput}
                     onChange={(e) => setPictureInput(e.target.value)}
                     placeholder="Describe what you see in the picture above using full English sentences..."
-                    className="w-full p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full p-3.5 rounded-2xl bg-[#F3F7F6] border border-[#CBDED9] text-xs text-[#134E4A] focus:ring-2 focus:ring-[#0F766E] outline-none font-medium"
                   />
                 </div>
 
                 <button
                   onClick={handleEvaluatePicture}
                   disabled={isEvaluatingPicture || !pictureInput.trim()}
-                  className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center space-x-2"
+                  className="px-5 py-2.5 rounded-2xl bg-ai-gradient disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center space-x-2 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>{isEvaluatingPicture ? 'Evaluating Description...' : 'Get AI Feedback'}</span>
                 </button>
 
                 {pictureFeedback && (
-                  <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 space-y-2 text-xs">
+                  <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] space-y-2 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-indigo-900 dark:text-indigo-200">AI Description Score:</span>
-                      <span className="font-extrabold text-sky-500 text-sm">{pictureFeedback.score}/100</span>
+                      <span className="font-bold text-[#134E4A]">AI Description Score:</span>
+                      <span className="font-extrabold text-[#0F766E] text-sm">{pictureFeedback.score}/100</span>
                     </div>
-                    <p className="text-slate-700 dark:text-slate-300">💡 {pictureFeedback.suggestions}</p>
-                    <div className="pt-2 border-t border-indigo-200 dark:border-indigo-800">
-                      <span className="font-bold text-slate-500 block mb-0.5">Model Sample Description:</span>
-                      <p className="text-slate-600 dark:text-slate-400 italic font-medium">{pictureFeedback.sample}</p>
+                    <p className="text-[#134E4A]">💡 {pictureFeedback.suggestions}</p>
+                    <div className="pt-2 border-t border-[#CBDED9]">
+                      <span className="font-bold text-teal-800/70 block mb-0.5">Model Sample Description:</span>
+                      <p className="text-[#134E4A] italic font-medium">{pictureFeedback.sample}</p>
                     </div>
                   </div>
                 )}
@@ -590,23 +590,23 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
             </div>
           ) : (
-            <p className="text-xs text-slate-500 italic">No picture description task available for this specific topic.</p>
+            <p className="text-xs text-teal-800/70 italic">No picture description task available for this specific topic.</p>
           )}
         </div>
       )}
 
       {/* TAB 5: EXERCISES & MINI GAMES */}
       {activeTab === 'exercises' && (
-        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-          <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
-            <Zap className="w-5 h-5 text-amber-500" />
+        <div className="p-6 rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] shadow-sm space-y-6">
+          <h3 className="font-bold text-base text-[#134E4A] flex items-center space-x-2">
+            <Zap className="w-5 h-5 text-[#F59E0B]" />
             <span>Interactive Mini Games & Quiz Exercises</span>
           </h3>
 
           <div className="space-y-6">
             {topic.content.exercises.map((ex) => (
-              <div key={ex.id} className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
-                <p className="font-bold text-xs text-slate-900 dark:text-white">{ex.question}</p>
+              <div key={ex.id} className="p-5 rounded-2xl bg-[#F3F7F6] border border-[#CBDED9] space-y-3">
+                <p className="font-bold text-xs text-[#134E4A]">{ex.question}</p>
 
                 {ex.options && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -614,12 +614,12 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                       <button
                         key={i}
                         onClick={() => handleSelectAnswer(ex.id, opt, ex.correctAnswer)}
-                        className={`p-3 rounded-xl text-left text-xs font-bold transition-all border ${
+                        className={`p-3 rounded-xl text-left text-xs font-bold transition-all border cursor-pointer ${
                           userAnswers[ex.id] === opt
                             ? exerciseFeedback[ex.id]
-                              ? 'bg-emerald-100 border-emerald-500 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                              : 'bg-rose-100 border-rose-500 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-indigo-400'
+                              ? 'bg-[#DCEDE9] border-[#0F766E] text-[#0F766E]'
+                              : 'bg-rose-100 border-rose-500 text-rose-800'
+                            : 'bg-white border-[#CBDED9] text-[#134E4A] hover:border-[#0F766E]'
                         }`}
                       >
                         {opt}
@@ -630,10 +630,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
                 {userAnswers[ex.id] && (
                   <div className={`p-3 rounded-xl text-xs ${
-                    exerciseFeedback[ex.id] ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                    exerciseFeedback[ex.id] ? 'bg-[#DCEDE9] text-[#0F766E]' : 'bg-rose-50 text-rose-800'
                   }`}>
                     <p className="font-bold">{exerciseFeedback[ex.id] ? '✅ Correct Answer!' : '❌ Incorrect'}</p>
-                    <p className="mt-1 text-[11px]">{ex.explanation}</p>
+                    <p className="mt-1 text-[11px] font-medium">{ex.explanation}</p>
                   </div>
                 )}
               </div>
@@ -644,30 +644,30 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
       {/* TAB 6: ROLE PLAY */}
       {activeTab === 'roleplay' && (
-        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-          <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
-            <Award className="w-5 h-5 text-indigo-500" />
+        <div className="p-6 rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] shadow-sm space-y-4">
+          <h3 className="font-bold text-base text-[#134E4A] flex items-center space-x-2">
+            <Award className="w-5 h-5 text-[#0F766E]" />
             <span>Role Play Guided Scenario</span>
           </h3>
 
           {topic.content.rolePlayScript ? (
             <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs space-y-1">
-                <span className="font-bold text-indigo-900 dark:text-indigo-200">{topic.content.rolePlayScript.title}</span>
-                <p className="text-slate-600 dark:text-slate-300">{topic.content.rolePlayScript.prompt}</p>
+              <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] text-xs space-y-1">
+                <span className="font-bold text-[#134E4A]">{topic.content.rolePlayScript.title}</span>
+                <p className="text-teal-800/80 font-medium">{topic.content.rolePlayScript.prompt}</p>
               </div>
 
               <div className="space-y-3">
                 {topic.content.rolePlayScript.turns.map((t, idx) => (
-                  <div key={idx} className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                    <span className="font-bold text-indigo-600 dark:text-sky-300 block">{t.speaker}</span>
-                    <p className="text-slate-800 dark:text-slate-200">{t.text}</p>
+                  <div key={idx} className="p-3.5 rounded-xl bg-[#F3F7F6] border border-[#CBDED9] text-xs">
+                    <span className="font-bold text-[#0F766E] block">{t.speaker}</span>
+                    <p className="text-[#134E4A] font-medium">{t.text}</p>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-xs text-slate-500 italic">No specific roleplay script for this lesson.</p>
+            <p className="text-xs text-teal-800/70 italic">No specific roleplay script for this lesson.</p>
           )}
         </div>
       )}
@@ -678,17 +678,17 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           
           {/* Case Study */}
           {topic.content.caseStudy && (
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-indigo-500" />
+            <div className="p-6 rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] shadow-sm space-y-3">
+              <h3 className="font-bold text-base text-[#134E4A] flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-[#0F766E]" />
                 <span>Case Study Scenario: {topic.content.caseStudy.title}</span>
               </h3>
-              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-[#134E4A] leading-relaxed bg-[#F3F7F6] p-4 rounded-2xl border border-[#CBDED9] font-medium">
                 {topic.content.caseStudy.scenario}
               </p>
               <div className="space-y-1 pt-2">
-                <span className="text-xs font-bold text-indigo-600 dark:text-sky-300">Key Analytical Questions:</span>
-                <ul className="list-disc list-inside text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                <span className="text-xs font-bold text-[#0F766E]">Key Analytical Questions:</span>
+                <ul className="list-disc list-inside text-xs text-[#134E4A] space-y-1 font-medium">
                   {topic.content.caseStudy.keyQuestions.map((q, i) => (
                     <li key={i}>{q}</li>
                   ))}
@@ -699,25 +699,25 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
           {/* Debate */}
           {topic.content.debate && (
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
-                <Flame className="w-5 h-5 text-amber-500" />
+            <div className="p-6 rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] shadow-sm space-y-4">
+              <h3 className="font-bold text-base text-[#134E4A] flex items-center space-x-2">
+                <Flame className="w-5 h-5 text-[#F59E0B]" />
                 <span>Structured Debate Topic: {topic.content.debate.topic}</span>
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-2">
-                  <span className="font-bold text-emerald-800 dark:text-emerald-300 uppercase text-[10px]">PRO Arguments (In Favor)</span>
-                  <ul className="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300">
+                <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] space-y-2">
+                  <span className="font-bold text-[#0F766E] uppercase text-[10px]">PRO Arguments (In Favor)</span>
+                  <ul className="list-disc list-inside space-y-1 text-[#134E4A] font-medium">
                     {topic.content.debate.proPoints.map((pt, i) => (
                       <li key={i}>{pt}</li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-2">
-                  <span className="font-bold text-rose-800 dark:text-rose-300 uppercase text-[10px]">CON Arguments (Opposed)</span>
-                  <ul className="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300">
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-2">
+                  <span className="font-bold text-rose-800 uppercase text-[10px]">CON Arguments (Opposed)</span>
+                  <ul className="list-disc list-inside space-y-1 text-slate-700">
                     {topic.content.debate.conPoints.map((pt, i) => (
                       <li key={i}>{pt}</li>
                     ))}
@@ -729,15 +729,15 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
           {/* Presentation Practice (Advanced Level) */}
           {topic.content.presentationPractice && (
-            <div className="p-6 rounded-3xl bg-indigo-900 text-white shadow-xl space-y-3">
-              <h3 className="font-bold text-base text-sky-300 flex items-center space-x-2">
-                <Award className="w-5 h-5" />
+            <div className="p-6 rounded-3xl bg-[#042F2C] text-white shadow-xl space-y-3 border border-[#14B8A6]/30">
+              <h3 className="font-bold text-base text-[#14B8A6] flex items-center space-x-2">
+                <Award className="w-5 h-5 text-[#F59E0B]" />
                 <span>Executive Presentation Practice ({topic.content.presentationPractice.duration})</span>
               </h3>
-              <p className="text-xs text-slate-200 font-medium">{topic.content.presentationPractice.topic}</p>
-              <div className="p-3 rounded-xl bg-indigo-950/80 border border-indigo-700 text-xs space-y-1">
-                <span className="font-bold text-indigo-300">Suggested Outline:</span>
-                <ul className="list-disc list-inside text-slate-300 space-y-1">
+              <p className="text-xs text-teal-100 font-medium">{topic.content.presentationPractice.topic}</p>
+              <div className="p-3 rounded-xl bg-[#0F766E]/40 border border-[#14B8A6]/40 text-xs space-y-1">
+                <span className="font-bold text-[#14B8A6]">Suggested Outline:</span>
+                <ul className="list-disc list-inside text-teal-100 space-y-1 font-medium">
                   {topic.content.presentationPractice.outlinePoints.map((pt, i) => (
                     <li key={i}>{pt}</li>
                   ))}

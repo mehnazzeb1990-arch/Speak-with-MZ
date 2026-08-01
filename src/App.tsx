@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Header } from './components/layout/Header';
+import { Sidebar } from './components/layout/Sidebar';
 import { Footer } from './components/layout/Footer';
 import { Mic, Sparkles } from 'lucide-react';
 
-// Views
+// Core Views
 import { HomeView } from './components/views/HomeView';
 import { DashboardView } from './components/views/DashboardView';
 import { SpeakingStudioView } from './components/views/SpeakingStudioView';
@@ -21,6 +22,16 @@ import { ContactView } from './components/views/ContactView';
 import { FAQsView } from './components/views/FAQsView';
 import { PrivacyPolicyView } from './components/views/PrivacyPolicyView';
 import { TermsConditionsView } from './components/views/TermsConditionsView';
+
+// Educational & Guide Views
+import { WhySpeakingView } from './components/views/WhySpeakingView';
+import { BenefitsEnglishView } from './components/views/BenefitsEnglishView';
+import { BeginnerGuideView } from './components/views/BeginnerGuideView';
+import { IntermediateGuideView } from './components/views/IntermediateGuideView';
+import { AdvancedGuideView } from './components/views/AdvancedGuideView';
+import { DailySpeakingTipsView } from './components/views/DailySpeakingTipsView';
+import { GrammarImprovementView } from './components/views/GrammarImprovementView';
+import { PronunciationTrainingView } from './components/views/PronunciationTrainingView';
 
 // Auth Views
 import { LoginView } from './components/views/LoginView';
@@ -50,6 +61,7 @@ const PROTECTED_ROUTES = [
 
 const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<string>('home');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const { isAuthenticated, authLoading } = useAuth();
 
   // Smooth top window scroll on route change
@@ -94,24 +106,40 @@ const AppContent: React.FC = () => {
         return <DashboardView onNavigate={setCurrentView} />;
       case 'speaking':
         return <SpeakingStudioView onNavigate={setCurrentView} />;
-      case 'vocab':
-        return <VocabVaultView onNavigate={setCurrentView} />;
       case 'curriculum':
         return <CurriculumHubView onNavigate={setCurrentView} />;
+      case 'why-speaking':
+        return <WhySpeakingView onNavigate={setCurrentView} />;
+      case 'benefits-english':
+        return <BenefitsEnglishView onNavigate={setCurrentView} />;
+      case 'guide-beginner':
+        return <BeginnerGuideView onNavigate={setCurrentView} />;
+      case 'guide-intermediate':
+        return <IntermediateGuideView onNavigate={setCurrentView} />;
+      case 'guide-advanced':
+        return <AdvancedGuideView onNavigate={setCurrentView} />;
+      case 'speaking-tips':
+        return <DailySpeakingTipsView onNavigate={setCurrentView} />;
+      case 'vocab':
+        return <VocabVaultView onNavigate={setCurrentView} />;
+      case 'grammar-improvement':
+        return <GrammarImprovementView onNavigate={setCurrentView} />;
+      case 'pronunciation-training':
+        return <PronunciationTrainingView onNavigate={setCurrentView} />;
       case 'progress':
         return <LearningProgressView onNavigate={setCurrentView} />;
+      case 'pricing':
+        return <PricingView onNavigate={setCurrentView} />;
       case 'achievements':
         return <AchievementsView />;
       case 'history':
         return <ConversationHistoryView onNavigate={setCurrentView} />;
-      case 'pricing':
-        return <PricingView onNavigate={setCurrentView} />;
       case 'about':
         return <AboutView />;
       case 'features':
         return <FeaturesView onNavigate={setCurrentView} />;
       case 'contact':
-        return <ContactView />;
+        return <ContactView onNavigate={setCurrentView} />;
       case 'faqs':
         return <FAQsView />;
       case 'privacy':
@@ -140,11 +168,26 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F3F7F6] dark:bg-slate-950 text-[#134E4A] dark:text-slate-100 transition-colors duration-200 selection:bg-[#0F766E] selection:text-white">
-      <Header currentView={currentView} onNavigate={setCurrentView} />
-      <main className="flex-1">
-        {renderCurrentView()}
-      </main>
+    <div className="min-h-screen flex flex-col bg-[#F3F7F6] text-[#134E4A] transition-colors duration-200 selection:bg-[#0F766E] selection:text-white">
+      <Header 
+        currentView={currentView} 
+        onNavigate={setCurrentView} 
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+      />
+
+      <div className="flex flex-1 w-full max-w-7xl mx-auto">
+        <Sidebar 
+          currentView={currentView} 
+          onNavigate={setCurrentView}
+          isOpenMobile={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        />
+        
+        <main className="flex-1 min-w-0">
+          {renderCurrentView()}
+        </main>
+      </div>
+
       <Footer onNavigate={setCurrentView} />
     </div>
   );

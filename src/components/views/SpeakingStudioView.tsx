@@ -325,37 +325,17 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
         {/* Scenario & Persona Indicators */}
         <div className="flex flex-wrap items-center gap-3">
           
-          {/* Persona Picker */}
-          <div className="relative group">
-            <button className="flex items-center space-x-2 px-3.5 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-              <img
-                src={activePersona.avatarUrl}
-                alt={activePersona.name}
-                className="w-6 h-6 rounded-lg object-cover"
-              />
-              <span className="font-bold text-xs text-slate-800 dark:text-slate-200">{activePersona.name}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </button>
-
-            {/* Persona Select Dropdown */}
-            <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-2 hidden group-hover:block z-30">
-              <p className="text-[11px] font-bold text-slate-400 uppercase px-2 py-1">Select AI Partner</p>
-              {AI_PERSONAS.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setActivePersona(p)}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center space-x-2.5 transition-colors ${
-                    activePersona.id === p.id ? 'bg-[#DCEDE9] text-[#0F766E] font-bold' : 'hover:bg-teal-50 text-[#134E4A]'
-                  }`}
-                >
-                  <img src={p.avatarUrl} alt={p.name} className="w-6 h-6 rounded-lg object-cover" />
-                  <div>
-                    <p className="font-bold">{p.name}</p>
-                    <p className="text-[10px] text-slate-400">{p.role}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
+          {/* Coach MZ AI Partner Indicator */}
+          <div className="flex items-center space-x-2 px-3.5 py-2 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] text-[#134E4A]">
+            <img
+              src={activePersona.avatarUrl}
+              alt={activePersona.name}
+              className="w-6 h-6 rounded-lg object-cover ring-1 ring-[#0F766E]"
+            />
+            <span className="font-extrabold text-xs text-[#134E4A]">{activePersona.name}</span>
+            <span className="text-[10px] font-bold text-[#0F766E] bg-teal-100/80 px-2 py-0.5 rounded-md border border-[#CBDED9]">
+              Personal AI Coach
+            </span>
           </div>
 
           {/* Scenario Selector */}

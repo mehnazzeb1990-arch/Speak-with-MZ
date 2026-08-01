@@ -144,7 +144,7 @@ export const SupportChatModal: React.FC<SupportChatModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#042F2C]/60 backdrop-blur-sm">
       <div className="relative w-full max-w-2xl bg-[#E6F1EF] rounded-3xl shadow-2xl border border-[#CBDED9] overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}

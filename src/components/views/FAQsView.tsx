@@ -24,7 +24,7 @@ export const FAQsView: React.FC = () => {
     },
     {
       q: 'Is this an IELTS test preparation app?',
-      a: 'Speak with MZ is designed primarily for everyday real-world communication, job interviews, and conversational fluency. However, we do include an Exam Coach persona (David Miller) for formal discourse practice.'
+      a: 'Speak with MZ is designed for everyday real-world communication, job interviews, and conversational fluency. Coach MZ also provides dedicated IELTS speaking practice and formal discourse feedback.'
     }
   ];
 

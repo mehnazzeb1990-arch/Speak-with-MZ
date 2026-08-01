@@ -25,6 +25,61 @@ interface DashboardViewProps {
   onNavigate: (view: string) => void;
 }
 
+interface CircularProgressProps {
+  percentage: number;
+  size?: number;
+  strokeWidth?: number;
+  color?: string;
+  trackColor?: string;
+  sublabel?: string;
+}
+
+const CircularProgress: React.FC<CircularProgressProps> = ({
+  percentage,
+  size = 60,
+  strokeWidth = 5,
+  color = '#0F766E',
+  trackColor = '#CBDED9',
+  sublabel,
+}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div className="relative inline-flex items-center justify-center shrink-0">
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Background Track Circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={trackColor}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+        />
+        {/* Animated Progress Circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          fill="transparent"
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center justify-center text-center">
+        <span className="text-xs font-black text-[#134E4A] leading-none">{percentage}%</span>
+        {sublabel && <span className="text-[8px] font-bold text-teal-800/70 mt-0.5">{sublabel}</span>}
+      </div>
+    </div>
+  );
+};
+
 export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
   const { user } = useAuth();
 
@@ -139,69 +194,138 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* Fluency */}
-          <div className="card-ai-luxury p-5 space-y-3 border border-[#CBDED9] hover:border-[#14B8A6] transition-all">
+          <div className="card-ai-luxury p-5 space-y-3 border border-[#CBDED9] hover:border-[#14B8A6] transition-all flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <div className="p-3 rounded-2xl bg-[#DCEDE9] text-[#0F766E]">
                 <Mic className="w-6 h-6" />
               </div>
-              <span className="text-xs font-extrabold text-[#0F766E] bg-teal-100/80 px-2.5 py-1 rounded-full">
-                88%
-              </span>
+              <CircularProgress percentage={88} size={54} strokeWidth={5} color="#0F766E" />
             </div>
             <div>
               <h4 className="font-extrabold text-base text-[#134E4A]">🎤 Fluency</h4>
-              <p className="text-xs text-teal-800/80 font-medium mt-0.5">Natural speaking speed & continuous hesitation-free flow</p>
+              <p className="text-xs text-teal-800/80 font-medium mt-0.5">Natural speaking speed & continuous flow</p>
             </div>
           </div>
 
           {/* Vocabulary */}
-          <div className="card-ai-luxury p-5 space-y-3 border border-[#CBDED9] hover:border-[#14B8A6] transition-all">
+          <div className="card-ai-luxury p-5 space-y-3 border border-[#CBDED9] hover:border-[#14B8A6] transition-all flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <div className="p-3 rounded-2xl bg-[#DCEDE9] text-[#0F766E]">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <span className="text-xs font-extrabold text-[#0F766E] bg-teal-100/80 px-2.5 py-1 rounded-full">
-                92%
-              </span>
+              <CircularProgress percentage={92} size={54} strokeWidth={5} color="#14B8A6" />
             </div>
             <div>
               <h4 className="font-extrabold text-base text-[#134E4A]">📚 Vocabulary</h4>
-              <p className="text-xs text-teal-800/80 font-medium mt-0.5">Contextual word choices & advanced phrasal verbs</p>
+              <p className="text-xs text-teal-800/80 font-medium mt-0.5">Contextual word choice & phrasal verbs</p>
             </div>
           </div>
 
           {/* Pronunciation */}
-          <div className="card-ai-luxury p-5 space-y-3 border border-[#CBDED9] hover:border-[#14B8A6] transition-all">
+          <div className="card-ai-luxury p-5 space-y-3 border border-[#CBDED9] hover:border-[#14B8A6] transition-all flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <div className="p-3 rounded-2xl bg-[#DCEDE9] text-[#0F766E]">
                 <Volume2 className="w-6 h-6" />
               </div>
-              <span className="text-xs font-extrabold text-[#0F766E] bg-teal-100/80 px-2.5 py-1 rounded-full">
-                84%
-              </span>
+              <CircularProgress percentage={84} size={54} strokeWidth={5} color="#0F766E" />
             </div>
             <div>
               <h4 className="font-extrabold text-base text-[#134E4A]">🗣 Pronunciation</h4>
-              <p className="text-xs text-teal-800/80 font-medium mt-0.5">Intonation, word stress & clear phonetic clarity</p>
+              <p className="text-xs text-teal-800/80 font-medium mt-0.5">Intonation, stress & phonetic clarity</p>
             </div>
           </div>
 
           {/* Grammar */}
-          <div className="card-ai-luxury p-5 space-y-3 border border-[#CBDED9] hover:border-[#14B8A6] transition-all">
+          <div className="card-ai-luxury p-5 space-y-3 border border-[#CBDED9] hover:border-[#14B8A6] transition-all flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <div className="p-3 rounded-2xl bg-[#DCEDE9] text-[#0F766E]">
                 <PenTool className="w-6 h-6" />
               </div>
-              <span className="text-xs font-extrabold text-[#0F766E] bg-teal-100/80 px-2.5 py-1 rounded-full">
-                90%
-              </span>
+              <CircularProgress percentage={90} size={54} strokeWidth={5} color="#14B8A6" />
             </div>
             <div>
               <h4 className="font-extrabold text-base text-[#134E4A]">✍ Grammar</h4>
-              <p className="text-xs text-teal-800/80 font-medium mt-0.5">Tense accuracy & complex clause structure</p>
+              <p className="text-xs text-teal-800/80 font-medium mt-0.5">Tense accuracy & complex clauses</p>
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* Topic Learning Mastery Levels (Circular Progress Indicators) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-black text-[#134E4A] flex items-center space-x-2">
+            <TrendingUp className="w-5 h-5 text-[#0F766E]" />
+            <span>Topic Mastery Progress</span>
+          </h3>
+          <button
+            onClick={() => onNavigate('curriculum')}
+            className="text-xs font-extrabold text-[#0F766E] hover:underline flex items-center space-x-1"
+          >
+            <span>Explore All 400 Topics</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              title: 'Business Negotiations',
+              category: 'Professional',
+              mastery: 85,
+              status: 'Advanced',
+              color: '#0F766E',
+            },
+            {
+              title: 'Academic IELTS Debate',
+              category: 'Advanced',
+              mastery: 78,
+              status: 'Proficient',
+              color: '#14B8A6',
+            },
+            {
+              title: 'Travel & Dining Conversations',
+              category: 'Everyday',
+              mastery: 94,
+              status: 'Mastered',
+              color: '#0F766E',
+            },
+            {
+              title: 'Idioms & Native Expressions',
+              category: 'Fluency',
+              mastery: 68,
+              status: 'In Progress',
+              color: '#10B981',
+            },
+          ].map((topicItem, index) => (
+            <div
+              key={index}
+              onClick={() => onNavigate('curriculum')}
+              className="p-5 rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] hover:border-[#14B8A6] shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-3 group"
+            >
+              <div className="space-y-1 flex-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#DCEDE9] text-[#0F766E] border border-[#CBDED9]">
+                  {topicItem.category}
+                </span>
+                <h4 className="font-extrabold text-sm text-[#134E4A] group-hover:text-[#0F766E] transition-colors line-clamp-1">
+                  {topicItem.title}
+                </h4>
+                <div className="flex items-center space-x-1 text-[11px] font-semibold text-teal-800/80">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0F766E]" />
+                  <span>{topicItem.status}</span>
+                </div>
+              </div>
+
+              <CircularProgress
+                percentage={topicItem.mastery}
+                size={58}
+                strokeWidth={5}
+                color={topicItem.color}
+                sublabel="mastery"
+              />
+            </div>
+          ))}
         </div>
       </div>
 
@@ -323,7 +447,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
           
           {/* Active AI Partner Box */}
           <div className="rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] p-6 shadow-sm space-y-4">
-            <h3 className="font-extrabold text-sm text-[#134E4A] uppercase tracking-wider">Lead AI Coach</h3>
+            <h3 className="font-extrabold text-sm text-[#134E4A] uppercase tracking-wider">Your Personal AI Coach</h3>
             
             <div className="flex items-center space-x-4">
               <img

@@ -92,6 +92,10 @@ export interface VocabularyItem {
   masteryLevel: number; // 0 to 5
   isSaved: boolean;
   dateAdded: string;
+  synonyms?: string[];
+  antonyms?: string[];
+  isLearned?: boolean;
+  isReviewLater?: boolean;
 }
 
 export interface Achievement {

@@ -191,14 +191,14 @@ export const SubscriptionView: React.FC = () => {
                 </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] flex items-center justify-between">
                 <div>
-                  <span className="text-slate-400 font-semibold block">14-Day Refund Guarantee</span>
-                  <span className="text-[11px] text-slate-500">Full 100% money-back guarantee</span>
+                  <span className="text-[#134E4A] font-semibold block text-xs">14-Day Refund Guarantee</span>
+                  <span className="text-[11px] text-teal-800/70 font-medium">Full 100% money-back guarantee</span>
                 </div>
                 <button
                   onClick={() => setRefundModalOpen(true)}
-                  className="px-3 py-1.5 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-sky-300 font-bold text-[11px] hover:bg-indigo-200 transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-[#0F766E] text-white font-bold text-[11px] hover:bg-[#115E59] transition-colors shadow-sm cursor-pointer"
                 >
                   Refund Policy
                 </button>
@@ -418,19 +418,19 @@ export const SubscriptionView: React.FC = () => {
 
       {/* Confirmation Modal for Subscription Cancellation */}
       {cancelConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#042F2C]/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-[#E6F1EF] rounded-3xl p-6 shadow-2xl border border-[#CBDED9] space-y-4">
             <div className="flex items-center space-x-3 text-rose-600">
               <AlertTriangle className="w-6 h-6" />
               <h3 className="text-lg font-extrabold">Cancel Subscription?</h3>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300">
+            <p className="text-xs text-[#134E4A] font-medium">
               Are you sure you want to cancel your Premium subscription? You will lose access to 200+ structured intermediate & advanced topics, 24/7 unlimited AI coaching, and ad-free experience at the end of your billing cycle.
             </p>
             <div className="flex items-center justify-end space-x-2 pt-2">
               <button
                 onClick={() => setCancelConfirmOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs"
+                className="px-4 py-2 rounded-xl bg-[#DCEDE9] text-[#134E4A] font-bold text-xs border border-[#CBDED9] hover:bg-[#CBDED9] cursor-pointer"
               >
                 Keep Subscription
               </button>

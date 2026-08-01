@@ -475,8 +475,8 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">Personalized AI Coaching</td>
-                      <td className="p-4 text-center text-teal-800">Standard persona</td>
-                      <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">4 Custom AI Tutor Personas</td>
+                      <td className="p-4 text-center text-teal-800">Standard Coach MZ</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Unlimited Coach MZ AI Sessions</td>
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">Ad-Free Experience</td>

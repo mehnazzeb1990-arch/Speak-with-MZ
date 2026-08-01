@@ -16,7 +16,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({ onNavigate }) => {
   }
 
   return (
-    <div id="free-plan-ad-banner" className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-950 text-white p-4 border border-indigo-800/60 shadow-md">
+    <div id="free-plan-ad-banner" className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#042F2C] via-[#0F766E] to-[#115E59] text-white p-4 border border-[#14B8A6]/40 shadow-md">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         
         <div className="flex items-center space-x-3">
