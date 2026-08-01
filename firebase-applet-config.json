@@ -1,12 +1,12 @@
 {
-  "projectId": "golden-quarter-c6shk",
-  "appId": "1:868726966540:web:fb19827bfa3d4645bba129",
-  "apiKey": "AIzaSyBv0WJQd17DBOqFZXPDUjCn4PJjF1lJuYg",
-  "authDomain": "golden-quarter-c6shk.firebaseapp.com",
+  "projectId": "speak-with-mz",
+  "appId": "1:586008089355:web:65a9acf1a9ebb3dd78c80e",
+  "apiKey": "YOUR_SPEAK_WITH_MZ_API_KEY",
+  "authDomain": "speak-with-mz.firebaseapp.com",
   "firestoreDatabaseId": "ai-studio-speakwithmz-449a5359-c174-4b5a-90b0-50a86ebdd5d2",
-  "storageBucket": "golden-quarter-c6shk.firebasestorage.app",
-  "messagingSenderId": "868726966540",
-  "measurementId": "",
-  "oAuthClientId": "868726966540-9lnpddhnmsd1lapimc76nvf4v0talo0h.apps.googleusercontent.com",
+  "storageBucket": "speak-with-mz.firebasestorage.app",
+  "messagingSenderId": "586008089355",
+  "measurementId": "G-W3VNW34ZL4",
+  "oAuthClientId": "YOUR_SPEAK_WITH_MZ_OAUTH_CLIENT_ID",
   "recaptchaSiteKey": ""
 }
