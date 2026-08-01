@@ -1,4 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  signOut as firebaseSignOut, 
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { auth, db, googleProvider } from '../lib/firebase';
 import { UserProfile, SubscriptionPlan, VocabularyItem, AIPersona, SpeakingScenario, NotificationItem, PaymentRecord, Currency } from '../types';
 import { INITIAL_USER, INITIAL_VOCABULARY, AI_PERSONAS, SPEAKING_SCENARIOS, INITIAL_NOTIFICATIONS } from '../data/mockData';
 import { INITIAL_PAYMENTS } from '../data/mockPayments';
@@ -6,14 +15,17 @@ import { INITIAL_PAYMENTS } from '../data/mockPayments';
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
+  authLoading: boolean;
+  authError: string | null;
+  clearAuthError: () => void;
   currency: Currency;
   setCurrency: (currency: Currency) => void;
   payments: PaymentRecord[];
   login: (email: string, password?: string) => Promise<boolean>;
-  register: (name: string, email: string, level: any) => Promise<boolean>;
+  register: (name: string, email: string, level?: any, password?: string) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
-  logout: () => void;
-  updateProfile: (updated: Partial<UserProfile>) => void;
+  logout: () => Promise<void>;
+  updateProfile: (updated: Partial<UserProfile>) => Promise<void>;
   upgradePlan: (plan: SubscriptionPlan, paymentMethod?: string, last4?: string) => void;
   cancelSubscription: () => void;
   toggleAutoRenew: () => void;
@@ -34,20 +46,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+
   const [currency, setCurrencyState] = useState<Currency>(() => {
     return (localStorage.getItem('speak_mz_currency') as Currency) || 'USD';
-  });
-
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('speak_mz_user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return INITIAL_USER;
-      }
-    }
-    return INITIAL_USER; // Logged in by default for frictionless demo experience
   });
 
   const [payments, setPayments] = useState<PaymentRecord[]>(() => {
@@ -61,11 +65,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return INITIAL_PAYMENTS;
   });
-
-  const setCurrency = (curr: Currency) => {
-    setCurrencyState(curr);
-    localStorage.setItem('speak_mz_currency', curr);
-  };
 
   const [savedVocabList, setSavedVocabList] = useState<VocabularyItem[]>(() => {
     const saved = localStorage.getItem('speak_mz_vocab');
@@ -94,13 +93,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activePersona, setActivePersona] = useState<AIPersona>(AI_PERSONAS[0]);
   const [activeScenario, setActiveScenario] = useState<SpeakingScenario>(SPEAKING_SCENARIOS[0]);
 
+  // Subscribe to Firebase Auth state
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('speak_mz_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('speak_mz_user');
-    }
-  }, [user]);
+    let unsubSnapshot: (() => void) | null = null;
+
+    const unsubAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      setAuthLoading(true);
+      if (firebaseUser) {
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        
+        unsubSnapshot = onSnapshot(userDocRef, (snapshot) => {
+          if (snapshot.exists()) {
+            setUser(snapshot.data() as UserProfile);
+          } else {
+            const defaultProfile: UserProfile = {
+              id: firebaseUser.uid,
+              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Learner',
+              email: firebaseUser.email || 'user@example.com',
+              avatarUrl: firebaseUser.photoURL || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
+              country: 'United States',
+              nativeLanguage: 'English',
+              level: 'Intermediate',
+              learningGoals: ['Fluency', 'Grammar'],
+              dailyGoalMinutes: 15,
+              currentStreak: 1,
+              totalMinutesPracticed: 0,
+              vocabularyLearned: 0,
+              conversationsCompleted: 0,
+              subscriptionPlan: 'free',
+              subscriptionStatus: 'active',
+              createdAt: new Date().toISOString().split('T')[0],
+            };
+            setDoc(userDocRef, defaultProfile).catch(console.error);
+            setUser(defaultProfile);
+          }
+          setAuthLoading(false);
+        }, (err) => {
+          console.error("Firestore user snapshot error:", err);
+          setUser({
+            ...INITIAL_USER,
+            id: firebaseUser.uid,
+            email: firebaseUser.email || INITIAL_USER.email,
+          });
+          setAuthLoading(false);
+        });
+      } else {
+        setUser(null);
+        setAuthLoading(false);
+      }
+    });
+
+    return () => {
+      unsubAuth();
+      if (unsubSnapshot) unsubSnapshot();
+    };
+  }, []);
+
+  const setCurrency = (curr: Currency) => {
+    setCurrencyState(curr);
+    localStorage.setItem('speak_mz_currency', curr);
+  };
 
   useEffect(() => {
     localStorage.setItem('speak_mz_payments', JSON.stringify(payments));
@@ -114,53 +166,132 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('speak_mz_notifications', JSON.stringify(notifications));
   }, [notifications]);
 
-  const login = async (email: string): Promise<boolean> => {
-    // Simulate auth network delay
-    await new Promise((r) => setTimeout(r, 600));
-    const newUser: UserProfile = {
-      ...INITIAL_USER,
-      email: email || INITIAL_USER.email,
-      name: email ? email.split('@')[0].toUpperCase() : INITIAL_USER.name,
-    };
-    setUser(newUser);
-    return true;
+  const clearAuthError = () => setAuthError(null);
+
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    setAuthError(null);
+    try {
+      if (!password) {
+        throw new Error("Password is required to sign in.");
+      }
+      await signInWithEmailAndPassword(auth, email, password);
+      return true;
+    } catch (err: any) {
+      console.error("Firebase Login Error:", err);
+      let message = "Failed to sign in. Please check your credentials.";
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        message = "Invalid email or password. Please try again.";
+      } else if (err.code === 'auth/too-many-requests') {
+        message = "Account temporarily locked due to failed attempts. Reset your password or try again later.";
+      } else if (err.message) {
+        message = err.message;
+      }
+      setAuthError(message);
+      return false;
+    }
   };
 
-  const register = async (name: string, email: string, level: any): Promise<boolean> => {
-    await new Promise((r) => setTimeout(r, 600));
-    const newUser: UserProfile = {
-      ...INITIAL_USER,
-      id: `usr_${Date.now()}`,
-      name: name || 'Learner',
-      email: email || 'user@speakmz.com',
-      level: level || 'Intermediate',
-      totalMinutesPracticed: 0,
-      currentStreak: 1,
-      conversationsCompleted: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setUser(newUser);
-    return true;
+  const register = async (name: string, email: string, level: any = 'Intermediate', password?: string): Promise<boolean> => {
+    setAuthError(null);
+    try {
+      if (!password || password.length < 6) {
+        throw new Error("Password must be at least 6 characters long.");
+      }
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+      const newUserProfile: UserProfile = {
+        id: uid,
+        name: name || 'Learner',
+        email: email,
+        avatarUrl: `https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200`,
+        country: 'United States',
+        nativeLanguage: 'English',
+        level: level || 'Intermediate',
+        learningGoals: ['Fluency', 'Grammar', 'Confidence'],
+        dailyGoalMinutes: 15,
+        currentStreak: 1,
+        totalMinutesPracticed: 0,
+        vocabularyLearned: 0,
+        conversationsCompleted: 0,
+        subscriptionPlan: 'free',
+        subscriptionStatus: 'active',
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      await setDoc(doc(db, 'users', uid), newUserProfile);
+      setUser(newUserProfile);
+      return true;
+    } catch (err: any) {
+      console.error("Firebase Register Error:", err);
+      let message = "Failed to create account.";
+      if (err.code === 'auth/email-already-in-use') {
+        message = "An account with this email address already exists. Please sign in instead.";
+      } else if (err.code === 'auth/weak-password') {
+        message = "Password is too weak. Please use at least 6 characters.";
+      } else if (err.message) {
+        message = err.message;
+      }
+      setAuthError(message);
+      return false;
+    }
   };
 
   const loginWithGoogle = async (): Promise<boolean> => {
-    await new Promise((r) => setTimeout(r, 600));
-    const newUser: UserProfile = {
-      ...INITIAL_USER,
-      name: 'Google User',
-      email: 'google.user@example.com',
-    };
-    setUser(newUser);
-    return true;
+    setAuthError(null);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const uid = result.user.uid;
+      const userDocRef = doc(db, 'users', uid);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+        const newUserProfile: UserProfile = {
+          id: uid,
+          name: result.user.displayName || 'Google User',
+          email: result.user.email || 'user@example.com',
+          avatarUrl: result.user.photoURL || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
+          country: 'United States',
+          nativeLanguage: 'English',
+          level: 'Intermediate',
+          learningGoals: ['Fluency', 'Grammar'],
+          dailyGoalMinutes: 15,
+          currentStreak: 1,
+          totalMinutesPracticed: 0,
+          vocabularyLearned: 0,
+          conversationsCompleted: 0,
+          subscriptionPlan: 'free',
+          subscriptionStatus: 'active',
+          createdAt: new Date().toISOString().split('T')[0],
+        };
+        await setDoc(userDocRef, newUserProfile);
+        setUser(newUserProfile);
+      }
+      return true;
+    } catch (err: any) {
+      console.error("Google Login Error:", err);
+      setAuthError(err.message || "Failed to sign in with Google.");
+      return false;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async (): Promise<void> => {
+    setAuthError(null);
+    try {
+      await firebaseSignOut(auth);
+      setUser(null);
+    } catch (err: any) {
+      console.error("Logout Error:", err);
+    }
   };
 
-  const updateProfile = (updated: Partial<UserProfile>) => {
+  const updateProfile = async (updated: Partial<UserProfile>) => {
     if (!user) return;
-    setUser((prev) => (prev ? { ...prev, ...updated } : null));
+    const nextUser = { ...user, ...updated };
+    setUser(nextUser);
+    try {
+      const userDocRef = doc(db, 'users', user.id);
+      await updateDoc(userDocRef, updated);
+    } catch (e) {
+      console.error("Failed to update Firestore user profile:", e);
+    }
   };
 
   const upgradePlan = (plan: SubscriptionPlan, paymentMethodName = 'Visa / Mastercard', last4Digits = '4242') => {
@@ -171,17 +302,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const planTitle = plan === 'advanced_premium' ? 'Advanced Premium Plan' : plan === 'intermediate_premium' ? 'Intermediate Premium Plan' : 'Beginner Free Plan';
 
-    setUser((prev) =>
-      prev
-        ? {
-            ...prev,
-            subscriptionPlan: plan,
-            subscriptionStatus: 'active',
-            autoRenew: true,
-            renewalDate: renewalStr,
-          }
-        : null
-    );
+    const updatedProfile: Partial<UserProfile> = {
+      subscriptionPlan: plan,
+      subscriptionStatus: 'active',
+      autoRenew: true,
+      renewalDate: renewalStr,
+    };
+
+    updateProfile(updatedProfile);
 
     if (plan !== 'free') {
       const newPayment: PaymentRecord = {
@@ -206,27 +334,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const cancelSubscription = () => {
     if (!user) return;
-    setUser((prev) =>
-      prev
-        ? {
-            ...prev,
-            subscriptionStatus: 'canceled',
-            autoRenew: false,
-          }
-        : null
-    );
+    updateProfile({
+      subscriptionStatus: 'canceled',
+      autoRenew: false,
+    });
   };
 
   const toggleAutoRenew = () => {
     if (!user) return;
-    setUser((prev) =>
-      prev
-        ? {
-            ...prev,
-            autoRenew: !prev.autoRenew,
-          }
-        : null
-    );
+    updateProfile({
+      autoRenew: !user.autoRenew,
+    });
   };
 
   const requestRefund = async (paymentId: string, reason: string): Promise<boolean> => {
@@ -235,16 +353,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       prev.map((p) => (p.id === paymentId ? { ...p, status: 'refunded' as const } : p))
     );
     if (user) {
-      setUser((prev) =>
-        prev
-          ? {
-              ...prev,
-              subscriptionPlan: 'free',
-              subscriptionStatus: 'inactive',
-              autoRenew: false,
-            }
-          : null
-      );
+      updateProfile({
+        subscriptionPlan: 'free',
+        subscriptionStatus: 'inactive',
+        autoRenew: false,
+      });
     }
     return true;
   };
@@ -257,15 +370,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const recordSpeakingMinutes = (minutes: number) => {
     if (!user) return;
-    setUser((prev) =>
-      prev
-        ? {
-            ...prev,
-            totalMinutesPracticed: prev.totalMinutesPracticed + minutes,
-            conversationsCompleted: prev.conversationsCompleted + 1,
-          }
-        : null
-    );
+    updateProfile({
+      totalMinutesPracticed: (user.totalMinutesPracticed || 0) + minutes,
+      conversationsCompleted: (user.conversationsCompleted || 0) + 1,
+    });
   };
 
   const addVocabWord = (item: VocabularyItem) => {
@@ -274,7 +382,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (exists) return prev;
       const updated = [item, ...prev];
       if (user) {
-        setUser({ ...user, vocabularyLearned: updated.length });
+        updateProfile({ vocabularyLearned: updated.length });
       }
       return updated;
     });
@@ -297,6 +405,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         isAuthenticated: Boolean(user),
+        authLoading,
+        authError,
+        clearAuthError,
         currency,
         setCurrency,
         payments,
@@ -334,3 +445,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

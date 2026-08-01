@@ -42,7 +42,7 @@ export const AI_PERSONAS: AIPersona[] = [
     description: 'Specializes in professional meetings, interviews, business vocabulary, and negotiations.',
     personality: 'Professional, sharp, polished',
     tag: 'Business',
-    color: 'from-blue-600 to-indigo-700',
+    color: 'from-teal-600 to-[#042F2C]',
     voiceGender: 'male',
   },
   {

@@ -442,12 +442,12 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-indigo-600 dark:text-sky-300">{turn.speaker}</span>
+                  <span className="font-bold text-xs text-[#0F766E]">{turn.speaker}</span>
                   <button
                     onClick={() => handleSpeakText(turn.text, i)}
-                    className="p-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-indigo-100 text-slate-600 dark:text-slate-300"
+                    className="p-1.5 rounded-xl bg-white hover:bg-teal-100 text-[#134E4A]"
                   >
-                    <Volume2 className={`w-4 h-4 ${playingIndex === i ? 'text-indigo-600 animate-bounce' : ''}`} />
+                    <Volume2 className={`w-4 h-4 ${playingIndex === i ? 'text-[#0F766E] animate-bounce' : ''}`} />
                   </button>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
@@ -457,11 +457,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             ))}
           </div>
 
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <p className="text-xs text-slate-500">Ready to speak this conversation out loud with AI?</p>
+          <div className="pt-4 border-t border-[#CBDED9] flex items-center justify-between">
+            <p className="text-xs text-teal-800/70 font-medium">Ready to speak this conversation out loud with AI?</p>
             <button
               onClick={() => onNavigate('speaking')}
-              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-600 text-white font-bold text-xs shadow-md flex items-center space-x-2"
+              className="px-5 py-2.5 rounded-2xl bg-ai-gradient text-white font-bold text-xs shadow-md flex items-center space-x-2 cursor-pointer"
             >
               <Mic className="w-4 h-4" />
               <span>Practice in Speaking Studio</span>
@@ -472,22 +472,22 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
       {/* TAB 3: PRONUNCIATION */}
       {activeTab === 'pronunciation' && (
-        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-          <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
-            <Volume2 className="w-5 h-5 text-sky-500" />
+        <div className="p-6 rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] shadow-sm space-y-4">
+          <h3 className="font-bold text-base text-[#134E4A] flex items-center space-x-2">
+            <Volume2 className="w-5 h-5 text-[#0F766E]" />
             <span>Target Sentences Pronunciation Drill</span>
           </h3>
-          <p className="text-xs text-slate-500">Listen to the correct pronunciation, then record your voice to receive clarity scoring.</p>
+          <p className="text-xs text-teal-800/70 font-medium">Listen to the correct pronunciation, then record your voice to receive clarity scoring.</p>
 
           <div className="space-y-4">
             {topic.content.pronunciationSentences.map((sentence, idx) => (
-              <div key={idx} className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
-                <p className="text-sm font-bold text-slate-900 dark:text-white">"{sentence}"</p>
+              <div key={idx} className="p-5 rounded-2xl bg-[#F3F7F6] border border-[#CBDED9] space-y-3">
+                <p className="text-sm font-bold text-[#134E4A]">"{sentence}"</p>
                 
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <button
                     onClick={() => handleSpeakText(sentence)}
-                    className="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-sky-300 font-bold text-xs flex items-center space-x-1.5"
+                    className="px-3.5 py-2 rounded-xl bg-[#DCEDE9] text-[#0F766E] font-bold text-xs flex items-center space-x-1.5 cursor-pointer border border-[#CBDED9]"
                   >
                     <Volume2 className="w-4 h-4" />
                     <span>Listen AI Audio</span>

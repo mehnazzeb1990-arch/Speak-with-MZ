@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
+import Stripe from 'stripe';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -9,6 +10,18 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: '10mb' }));
+
+// Lazy Stripe initialization
+let stripeClient: Stripe | null = null;
+function getStripeClient(): Stripe | null {
+  if (!stripeClient) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (key && key !== '' && key !== 'MY_STRIPE_SECRET_KEY') {
+      stripeClient = new Stripe(key);
+    }
+  }
+  return stripeClient;
+}
 
 // Lazy Gemini AI instance
 let aiClient: GoogleGenAI | null = null;
@@ -37,7 +50,68 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     geminiConfigured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY'),
     elevenLabsConfigured: Boolean(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_API_KEY !== ''),
+    stripeConfigured: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'MY_STRIPE_SECRET_KEY'),
   });
+});
+
+// Stripe Create Checkout Session Endpoint
+app.post('/api/stripe/create-checkout-session', async (req, res) => {
+  try {
+    const { plan = 'intermediate_premium', currency = 'USD', userId = '', userEmail = '' } = req.body;
+    const stripe = getStripeClient();
+
+    if (!stripe) {
+      // If Stripe secret key is not set, return simulated response for graceful preview
+      res.json({
+        simulated: true,
+        message: 'Stripe API key not configured on server. Handled via interactive checkout component.',
+        plan,
+        currency,
+      });
+      return;
+    }
+
+    const host = req.get('host') || 'localhost:3000';
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const origin = `${protocol}://${host}`;
+
+    const isPKR = currency === 'PKR';
+    const priceAmount = isPKR ? 280000 : 1000; // Rs. 2,800 in paisa or $10.00 in cents
+    const currencyCode = isPKR ? 'pkr' : 'usd';
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      line_items: [
+        {
+          price_data: {
+            currency: currencyCode,
+            product_data: {
+              name: plan === 'advanced_premium' ? 'Speak with MZ - Advanced Premium Plan' : 'Speak with MZ - Premium Plan',
+              description: 'Unlimited AI English speaking practice, AI voice conversation, pronunciation & grammar correction',
+            },
+            unit_amount: priceAmount,
+            recurring: {
+              interval: 'month',
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      customer_email: userEmail || undefined,
+      metadata: {
+        userId,
+        plan,
+      },
+      success_url: `${origin}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/?payment=cancelled`,
+    });
+
+    res.json({ url: session.url, sessionId: session.id });
+  } catch (err: any) {
+    console.error('Stripe Checkout Session Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ElevenLabs Voice Text-to-Speech Endpoint
@@ -365,6 +439,55 @@ app.post('/api/gemini/vocabulary', async (req, res) => {
         { word: 'Nuance', phonetic: '/ˈnuː.ɑːns/', definition: 'A subtle difference in shade of meaning, expression, or sound.', example: 'Native speakers pick up on cultural nuances in English.', level: 'Advanced', category: 'Vocabulary' }
       ]
     });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Gemini Customer Support Assistant Endpoint
+app.post('/api/gemini/support-chat', async (req, res) => {
+  try {
+    const { message, category = 'all' } = req.body;
+    if (!message || typeof message !== 'string') {
+      res.status(400).json({ error: 'Message text is required' });
+      return;
+    }
+
+    const ai = getGeminiClient();
+    let replyText = '';
+
+    if (ai) {
+      try {
+        const systemInstruction = `
+You are the official 24/7 AI Customer Support Assistant for "Speak with MZ", a premier AI-powered English speaking partner application.
+Your role is to help users with:
+1. Account setup (Registration, Login, Password Reset, Profile Settings)
+2. Speaking practice (Speaking Studio, Scenarios, Speech Analysis, Fluency Scoring)
+3. AI features (Gemini AI partner, ElevenLabs TTS voice synthesis, Grammar feedback, Vocabulary Vault)
+4. Subscription plans & Billing (Free Beginner 200 min/mo, Intermediate Plan $15/mo or PKR 3,900/mo, Advanced Plan $29/mo or PKR 7,900/mo, 14-day 100% refund policy, Payment methods: Visa, Mastercard, 1Link/PayPak, JazzCash, EasyPaisa)
+5. Technical issues (Microphone permissions, audio playback, browser compatibility)
+
+Tone: Professional, warm, empathetic, concise, and helpful. Format your responses with bullet points or bold text where appropriate.
+
+User category filter: "${category}".
+`;
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: `User asks support question: "${message}"`,
+          config: { systemInstruction },
+        });
+
+        replyText = response.text || '';
+      } catch (e) {
+        console.warn('Gemini support chat error, using fallback');
+      }
+    }
+
+    if (!replyText) {
+      replyText = `Thank you for your question about Speak with MZ! I am your AI Support Assistant. Speak with MZ offers AI-powered English speaking practice, real-time grammar feedback, and custom vocabulary modules. For specific billing or account issues, you can also leave a message for our support team who respond within 2 hours!`;
+    }
+
+    res.json({ reply: replyText, timestamp: new Date().toISOString() });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -1,45 +1,59 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Mic, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Mic, Mail, Lock, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
 
 export const LoginView: React.FC<{ onNavigate: (v: string) => void }> = ({ onNavigate }) => {
-  const { login, loginWithGoogle } = useAuth();
-  const [email, setEmail] = useState('mehnazzeb1990@gmail.com');
-  const [password, setPassword] = useState('••••••••');
+  const { login, loginWithGoogle, authError, clearAuthError } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleFormLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearAuthError();
     setLoading(true);
-    await login(email, password);
+    const success = await login(email, password);
     setLoading(false);
-    onNavigate('dashboard');
+    if (success) {
+      onNavigate('dashboard');
+    }
   };
 
   const handleGoogle = async () => {
+    clearAuthError();
     setLoading(true);
-    await loginWithGoogle();
+    const success = await loginWithGoogle();
     setLoading(false);
-    onNavigate('dashboard');
+    if (success) {
+      onNavigate('dashboard');
+    }
   };
 
   return (
     <div id="login-page" className="max-w-md mx-auto px-4 py-16">
-      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 shadow-xl space-y-6">
+      <div className="card-ai-luxury p-8 space-y-6">
         
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 flex items-center justify-center text-white mx-auto shadow-md">
-            <Mic className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-2xl bg-ai-gradient flex items-center justify-center text-white mx-auto shadow-lg shadow-teal-900/20">
+            <Mic className="w-7 h-7 text-white" />
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Welcome Back</h2>
-          <p className="text-xs text-slate-500">Log in to continue your AI speaking practice</p>
+          <h2 className="text-2xl font-black text-[#134E4A]">Sign In to Speak with MZ</h2>
+          <p className="text-xs text-teal-900/80 font-medium">Access your personalized AI voice coach and curriculum</p>
         </div>
 
-        {/* Google Sign-in Demo Button */}
+        {authError && (
+          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start space-x-2.5">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+            <div className="flex-1 font-medium">{authError}</div>
+          </div>
+        )}
+
+        {/* Google Sign-in */}
         <button
           onClick={handleGoogle}
           disabled={loading}
-          className="w-full py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 font-semibold text-xs text-slate-700 dark:text-slate-200 flex items-center justify-center space-x-2 transition-colors"
+          type="button"
+          className="w-full py-3.5 rounded-2xl bg-[#DCEDE9] hover:bg-teal-100/80 border border-[#CBDED9] font-extrabold text-xs text-[#134E4A] flex items-center justify-center space-x-2.5 transition-all shadow-sm cursor-pointer"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
@@ -50,66 +64,78 @@ export const LoginView: React.FC<{ onNavigate: (v: string) => void }> = ({ onNav
           <span>Continue with Google</span>
         </button>
 
-        <div className="flex items-center space-x-2 text-[10px] text-slate-400 uppercase font-bold text-center">
-          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
-          <span>Or Email</span>
-          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
+        <div className="flex items-center space-x-2 text-[10px] text-teal-800/60 uppercase font-black text-center">
+          <div className="flex-1 h-px bg-[#CBDED9]" />
+          <span>Or Email & Password</span>
+          <div className="flex-1 h-px bg-[#CBDED9]" />
         </div>
 
         <form onSubmit={handleFormLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Email Address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm outline-none"
-            />
+            <label className="block text-xs font-bold uppercase text-teal-800/80 mb-1">Email Address</label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-teal-700/60 absolute left-3.5 top-3.5" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="name@example.com"
+                className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-sm outline-none focus:ring-2 focus:ring-[#0F766E] transition-all font-medium"
+              />
+            </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold uppercase text-slate-400">Password</label>
+              <label className="block text-xs font-bold uppercase text-teal-800/80">Password</label>
               <button
                 type="button"
                 onClick={() => onNavigate('forgot-password')}
-                className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                className="text-xs font-extrabold text-[#0F766E] hover:text-[#0D9488] hover:underline transition-colors cursor-pointer"
               >
                 Forgot Password?
               </button>
             </div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm outline-none"
-            />
+            <div className="relative">
+              <Lock className="w-4 h-4 text-teal-700/60 absolute left-3.5 top-3.5" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-sm outline-none focus:ring-2 focus:ring-[#0F766E] transition-all font-medium"
+              />
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 hover:from-teal-600 hover:to-emerald-700 transition-all flex items-center justify-center space-x-2"
+            className="w-full py-3.5 rounded-2xl bg-ai-gradient text-white font-black text-sm shadow-lg shadow-teal-900/20 hover:opacity-95 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>Log In</span>
+                <span>Sign In</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        <p className="text-xs text-center text-slate-500">
-          Don't have an account?{' '}
-          <button onClick={() => onNavigate('register')} className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
-            Register Free
+        <div className="pt-2 text-center text-xs text-teal-900/80 font-medium">
+          Don't have an account yet?{' '}
+          <button 
+            type="button"
+            onClick={() => onNavigate('register')} 
+            className="font-black text-[#0F766E] hover:underline cursor-pointer"
+          >
+            Create Account Free
           </button>
-        </p>
+        </div>
 
       </div>
     </div>

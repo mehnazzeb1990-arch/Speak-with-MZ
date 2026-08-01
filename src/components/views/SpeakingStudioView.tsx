@@ -345,7 +345,7 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                   key={p.id}
                   onClick={() => setActivePersona(p)}
                   className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center space-x-2.5 transition-colors ${
-                    activePersona.id === p.id ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-sky-400 font-bold' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                    activePersona.id === p.id ? 'bg-[#DCEDE9] text-[#0F766E] font-bold' : 'hover:bg-teal-50 text-[#134E4A]'
                   }`}
                 >
                   <img src={p.avatarUrl} alt={p.name} className="w-6 h-6 rounded-lg object-cover" />
@@ -360,28 +360,28 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
 
           {/* Scenario Selector */}
           <div className="relative group">
-            <button className="flex items-center space-x-2 px-3.5 py-2 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-sky-300 transition-colors">
-              <Sparkles className="w-4 h-4 text-indigo-500" />
-              <span className="font-bold text-xs">{activeScenario.title}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-indigo-500" />
+            <button className="flex items-center space-x-2 px-3.5 py-2 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] text-[#0F766E] font-extrabold text-xs transition-colors">
+              <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+              <span className="font-extrabold text-xs">{activeScenario.title}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#0F766E]" />
             </button>
 
             {/* Scenario Select Dropdown */}
-            <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-2 hidden group-hover:block z-30">
-              <p className="text-[11px] font-bold text-slate-400 uppercase px-2 py-1">Choose Scenario</p>
+            <div className="absolute top-full left-0 mt-2 w-72 bg-[#E6F1EF] rounded-2xl shadow-xl border border-[#CBDED9] p-2 hidden group-hover:block z-30">
+              <p className="text-[11px] font-bold text-teal-800/60 uppercase px-2 py-1">Choose Scenario</p>
               {SPEAKING_SCENARIOS.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setActiveScenario(s)}
                   className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors ${
-                    activeScenario.id === s.id ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-sky-400 font-bold' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                    activeScenario.id === s.id ? 'bg-[#DCEDE9] text-[#0F766E] font-bold' : 'hover:bg-teal-100 text-[#134E4A]'
                   }`}
                 >
                   <div>
                     <p className="font-bold">{s.title}</p>
-                    <p className="text-[10px] text-slate-400">{s.category}</p>
+                    <p className="text-[10px] text-teal-800/70">{s.category}</p>
                   </div>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-medium">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-100/80 font-medium text-[#0F766E]">
                     {s.difficulty}
                   </span>
                 </button>
@@ -390,8 +390,8 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
           </div>
 
           {/* Session Timer */}
-          <div className="flex items-center space-x-1.5 text-xs font-mono font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-2xl">
-            <Clock className="w-3.5 h-3.5 text-indigo-500" />
+          <div className="flex items-center space-x-1.5 text-xs font-mono font-extrabold text-[#134E4A] bg-[#DCEDE9] px-3 py-2 rounded-2xl border border-[#CBDED9]">
+            <Clock className="w-3.5 h-3.5 text-[#0F766E]" />
             <span>{formatTime(sessionSeconds)}</span>
           </div>
         </div>
@@ -402,21 +402,21 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
           {/* Replay Last AI Response */}
           <button
             onClick={handleReplayLastAiMessage}
-            className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center space-x-1 text-xs font-bold"
+            className="p-2.5 rounded-2xl bg-[#DCEDE9] text-[#134E4A] hover:bg-teal-100 transition-colors flex items-center space-x-1 text-xs font-bold border border-[#CBDED9]"
             title="Replay Last AI Voice Response"
           >
-            <RotateCcw className="w-4 h-4 text-indigo-500" />
+            <RotateCcw className="w-4 h-4 text-[#0F766E]" />
             <span className="hidden sm:inline">Replay</span>
           </button>
 
           {/* Speed Selector */}
-          <div className="flex items-center space-x-1 text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
+          <div className="flex items-center space-x-1 text-xs font-bold text-[#134E4A] bg-[#DCEDE9] p-1 rounded-2xl border border-[#CBDED9]">
             {[0.75, 1.0, 1.25, 1.5].map((s) => (
               <button
                 key={s}
                 onClick={() => setAudioSpeed(s)}
                 className={`px-2 py-1 rounded-xl transition-colors ${
-                  audioSpeed === s ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-sky-300 shadow-sm' : 'hover:text-slate-800 dark:hover:text-white'
+                  audioSpeed === s ? 'bg-[#0F766E] text-white shadow-sm' : 'hover:text-[#0F766E]'
                 }`}
               >
                 {s}x
@@ -427,16 +427,16 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
           {/* Sound Mute Toggle */}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors"
+            className="p-2.5 rounded-2xl bg-[#DCEDE9] text-[#134E4A] hover:bg-teal-100 transition-colors border border-[#CBDED9]"
             title={soundEnabled ? 'Audio Output Enabled' : 'Audio Output Muted'}
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-indigo-500" /> : <VolumeX className="w-4 h-4 text-rose-500" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-[#0F766E]" /> : <VolumeX className="w-4 h-4 text-rose-500" />}
           </button>
 
           {/* End Session Button */}
           <button
             onClick={handleEndSession}
-            className="px-4 py-2.5 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-rose-500 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 transition-all shadow-md active:scale-95"
+            className="px-4 py-2.5 rounded-2xl text-xs font-extrabold text-white bg-gradient-to-r from-[#0F766E] to-[#14B8A6] hover:opacity-95 transition-all shadow-md shadow-teal-700/20 active:scale-95"
           >
             Finish & Get AI Report
           </button>
@@ -450,39 +450,39 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
         <div className="lg:col-span-8 space-y-4">
           
           {/* AI Visual Stage */}
-          <div className="relative rounded-3xl bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white p-6 shadow-xl border border-indigo-800/80 overflow-hidden min-h-[160px] flex items-center justify-between">
+          <div className="relative rounded-3xl bg-gradient-to-r from-[#042F2C] via-[#0F766E] to-[#0D9488] text-white p-6 shadow-xl border border-[#14B8A6]/40 overflow-hidden min-h-[160px] flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <img
                   src={activePersona.avatarUrl}
                   alt={activePersona.name}
                   className={`w-16 h-16 rounded-2xl object-cover ring-4 transition-all duration-300 ${
-                    isAiSpeaking ? 'ring-sky-400 scale-105 shadow-lg shadow-sky-400/40' : 'ring-indigo-700'
+                    isAiSpeaking ? 'ring-[#14B8A6] scale-105 shadow-lg shadow-teal-400/40' : 'ring-teal-700'
                   }`}
                 />
                 {isAiSpeaking && (
-                  <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-sky-400 rounded-full ring-2 ring-indigo-950 animate-ping" />
+                  <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#14B8A6] rounded-full ring-2 ring-[#042F2C] animate-ping" />
                 )}
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h3 className="font-bold text-lg text-white">{activePersona.name}</h3>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 font-medium">
-                    ElevenLabs Voice (nDJIICjR)
+                  <h3 className="font-extrabold text-lg text-white">{activePersona.name}</h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-teal-100 border border-white/20 font-bold">
+                    ElevenLabs AI Voice
                   </span>
                 </div>
-                <p className="text-xs text-sky-300 font-medium">{activePersona.role}</p>
-                <p className="text-[11px] text-indigo-100/70">{activePersona.personality}</p>
+                <p className="text-xs text-teal-200 font-bold">{activePersona.role}</p>
+                <p className="text-[11px] text-teal-100/70 font-medium">{activePersona.personality}</p>
               </div>
             </div>
 
             {/* Audio Waveform Indicator */}
-            <div className="flex items-center space-x-1 h-8">
+            <div className="flex items-center space-x-1.5 h-10">
               {[30, 60, 90, 40, 80, 50, 100, 70, 40, 90, 60, 30].map((h, i) => (
                 <div
                   key={i}
                   className={`w-1.5 rounded-full transition-all duration-300 ${
-                    isAiSpeaking ? 'bg-sky-400 animate-pulse' : 'bg-indigo-900 h-2'
+                    isAiSpeaking ? 'bg-[#14B8A6] animate-pulse shadow-sm' : 'bg-teal-900/60 h-2'
                   }`}
                   style={{ height: isAiSpeaking ? `${h}%` : '8px' }}
                 />
@@ -491,16 +491,16 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
           </div>
 
           {/* Transcript Control Toolbar & Search */}
-          <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="p-3 rounded-2xl bg-[#E6F1EF] border border-[#CBDED9] shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
             {/* Live Search */}
-            <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl flex-1 max-w-xs">
-              <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <div className="flex items-center space-x-2 bg-[#DCEDE9] px-3 py-1.5 rounded-xl flex-1 max-w-xs border border-[#CBDED9]">
+              <Search className="w-3.5 h-3.5 text-teal-800/60 shrink-0" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search transcript history..."
-                className="bg-transparent border-none outline-none text-slate-900 dark:text-white text-xs w-full"
+                className="bg-transparent border-none outline-none text-[#134E4A] font-medium text-xs w-full"
               />
             </div>
 
@@ -508,25 +508,25 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleCopyTranscript}
-                className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold flex items-center space-x-1"
+                className="px-2.5 py-1.5 rounded-xl bg-[#DCEDE9] hover:bg-teal-100 text-[#134E4A] font-bold flex items-center space-x-1 border border-[#CBDED9]"
                 title="Copy Transcript"
               >
-                <Copy className="w-3.5 h-3.5 text-indigo-500" />
+                <Copy className="w-3.5 h-3.5 text-[#0F766E]" />
                 <span>{copiedNotification ? 'Copied!' : 'Copy'}</span>
               </button>
 
               <button
                 onClick={() => handleDownloadTranscript('txt')}
-                className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold flex items-center space-x-1"
+                className="px-2.5 py-1.5 rounded-xl bg-[#DCEDE9] hover:bg-teal-100 text-[#134E4A] font-bold flex items-center space-x-1 border border-[#CBDED9]"
                 title="Download TXT Transcript"
               >
-                <Download className="w-3.5 h-3.5 text-sky-500" />
+                <Download className="w-3.5 h-3.5 text-[#0F766E]" />
                 <span>Export TXT</span>
               </button>
 
               <button
                 onClick={handleClearTranscript}
-                className="p-1.5 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 transition-colors"
+                className="p-1.5 rounded-xl hover:bg-rose-100 text-teal-800/60 hover:text-rose-600 transition-colors"
                 title="Clear Transcript"
               >
                 <Trash2 className="w-4 h-4" />
@@ -535,28 +535,28 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
           </div>
 
           {/* Transcript Message List */}
-          <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-sm min-h-[380px] max-h-[480px] overflow-y-auto space-y-4">
+          <div className="rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] p-6 shadow-sm min-h-[380px] max-h-[480px] overflow-y-auto space-y-4">
             {filteredMessages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
-                <div className="flex items-center space-x-2 mb-1 text-[11px] text-slate-400 font-medium">
+                <div className="flex items-center space-x-2 mb-1 text-[11px] text-teal-800/70 font-bold">
                   <span>{msg.sender === 'user' ? (user?.name || 'You') : activePersona.name}</span>
                   <span>•</span>
                   <span>{msg.timestamp}</span>
                   {msg.fluencyScore && (
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                    <span className="px-2 py-0.5 rounded bg-[#DCEDE9] text-[#0F766E] font-extrabold text-[10px] border border-[#CBDED9]">
                       Fluency {msg.fluencyScore}%
                     </span>
                   )}
                 </div>
 
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed font-medium ${
                     msg.sender === 'user'
-                      ? 'bg-gradient-to-r from-indigo-600 to-sky-600 text-white rounded-tr-none shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200/60 dark:border-slate-700/60'
+                      ? 'bg-[#0F766E] text-white rounded-tr-none shadow-sm'
+                      : 'bg-[#DCEDE9] text-[#134E4A] rounded-tl-none border border-[#CBDED9]'
                   }`}
                 >
                   <p>{msg.text}</p>
@@ -564,7 +564,7 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                   {msg.sender === 'ai' && soundEnabled && (
                     <button
                       onClick={() => handlePlayAiSpeech(msg.text)}
-                      className="mt-2 text-[11px] font-bold text-indigo-600 dark:text-sky-400 flex items-center space-x-1 hover:underline"
+                      className="mt-2 text-[11px] font-extrabold text-[#0F766E] flex items-center space-x-1 hover:underline"
                     >
                       <Volume2 className="w-3.5 h-3.5" />
                       <span>Listen Again</span>
@@ -575,8 +575,8 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
             ))}
 
             {isSubmitting && (
-              <div className="flex items-center space-x-2 text-xs text-slate-400 italic">
-                <div className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
+              <div className="flex items-center space-x-2 text-xs text-[#0F766E] font-bold italic">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#14B8A6] animate-ping" />
                 <span>{activePersona.name} is thinking & analyzing grammar...</span>
               </div>
             )}
@@ -586,28 +586,28 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
 
           {/* Speech Error Notice */}
           {speechError && (
-            <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center justify-between">
+            <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{speechError}</span>
               </div>
-              <button onClick={() => setSpeechError(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSpeechError(null)} className="text-rose-500 hover:text-rose-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
           {/* Interactive Speech Input & Microphone Control */}
-          <div className="relative rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-3 shadow-md">
+          <div className="relative rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] p-3 shadow-md">
             
             {/* Interim Microphone Transcript Display */}
             {isListening && (
-              <div className="px-4 py-2 mb-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-sky-200 text-xs font-semibold animate-pulse flex items-center justify-between">
+              <div className="px-4 py-2 mb-2 rounded-xl bg-[#DCEDE9] text-[#0F766E] text-xs font-bold animate-pulse flex items-center justify-between border border-[#CBDED9]">
                 <span className="flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
                   <span>Listening to your speech... Speak naturally in English.</span>
                 </span>
-                <button onClick={toggleListening} className="text-rose-600 font-bold underline text-[11px]">
+                <button onClick={toggleListening} className="text-rose-600 font-extrabold underline text-[11px]">
                   Pause Mic
                 </button>
               </div>
@@ -624,10 +624,10 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
               <button
                 type="button"
                 onClick={toggleListening}
-                className={`p-3.5 rounded-2xl text-white font-bold transition-all shadow-md flex items-center justify-center shrink-0 ${
+                className={`p-3.5 rounded-2xl text-white font-extrabold transition-all shadow-md flex items-center justify-center shrink-0 ${
                   isListening
-                    ? 'bg-rose-500 hover:bg-rose-600 animate-pulse shadow-rose-500/30 ring-4 ring-rose-300 dark:ring-rose-900'
-                    : 'bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 shadow-indigo-500/25'
+                    ? 'bg-rose-500 hover:bg-rose-600 animate-pulse ring-4 ring-rose-300'
+                    : 'bg-ai-gradient hover:opacity-95 shadow-teal-700/25'
                 }`}
                 title={isListening ? 'Click to Stop Recording' : 'Click to Start Speaking (🎤 Microphone)'}
               >
@@ -640,14 +640,14 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={isListening ? 'Listening to voice input...' : 'Type your sentence or press 🎤 to speak...'}
-                className="flex-1 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="flex-1 bg-[#DCEDE9] text-[#134E4A] px-4 py-3.5 rounded-2xl border border-[#CBDED9] text-sm focus:ring-2 focus:ring-[#0F766E] outline-none font-medium"
               />
 
               {/* Send Button */}
               <button
                 type="submit"
                 disabled={!inputText.trim() || isSubmitting}
-                className="p-3.5 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 transition-all shrink-0"
+                className="p-3.5 rounded-2xl bg-[#0F766E] text-white hover:bg-[#0D9488] disabled:opacity-40 transition-all shrink-0 cursor-pointer"
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -660,80 +660,80 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
         <div className="lg:col-span-4 space-y-6">
           
           {/* Live Grammar Doctor Card */}
-          <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm space-y-4">
+          <div className="rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-sky-400">
-                  <Sparkles className="w-4 h-4" />
+                <div className="p-2 rounded-xl bg-[#DCEDE9] text-[#0F766E]">
+                  <Sparkles className="w-4 h-4 text-[#F59E0B]" />
                 </div>
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Grammar Doctor</h4>
+                <h4 className="font-extrabold text-sm text-[#134E4A]">Grammar Feedback</h4>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-sky-300">
-                Real-Time
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#DCEDE9] text-[#0F766E] border border-[#CBDED9]">
+                Real-Time AI
               </span>
             </div>
 
             {latestGrammar ? (
               <div className="space-y-3 text-xs">
-                <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
-                  <p className="text-slate-400 font-bold uppercase text-[10px]">Original</p>
-                  <p className="text-rose-700 dark:text-rose-300 line-through font-medium">{latestGrammar.original}</p>
+                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200">
+                  <p className="text-rose-600 font-extrabold uppercase text-[10px]">Original</p>
+                  <p className="text-rose-800 line-through font-medium">{latestGrammar.original}</p>
                 </div>
-                <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
-                  <p className="text-indigo-600 dark:text-sky-400 font-bold uppercase text-[10px]">Corrected</p>
-                  <p className="text-indigo-900 dark:text-indigo-100 font-bold">{latestGrammar.corrected}</p>
+                <div className="p-3 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9]">
+                  <p className="text-[#0F766E] font-extrabold uppercase text-[10px]">Corrected</p>
+                  <p className="text-[#134E4A] font-black">{latestGrammar.corrected}</p>
                 </div>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-[11px] bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">
+                <p className="text-teal-900/80 font-medium leading-relaxed text-[11px] bg-[#F3F7F6] p-3 rounded-xl border border-[#CBDED9]">
                   {latestGrammar.explanation}
                 </p>
               </div>
             ) : (
-              <p className="text-xs text-slate-500 dark:text-slate-400 italic py-4 text-center">
-                Speak a sentence! The AI will analyze your grammar and provide instant friendly tips here.
+              <p className="text-xs text-teal-800/70 font-medium italic py-4 text-center">
+                Speak a sentence! The AI will analyze your grammar and provide instant friendly feedback here.
               </p>
             )}
           </div>
 
           {/* AI Suggested Vocabulary */}
-          <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm space-y-4">
+          <div className="rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400">
+                <div className="p-2 rounded-xl bg-[#DCEDE9] text-[#0F766E]">
                   <BookMarked className="w-4 h-4" />
                 </div>
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Suggested Vocabulary</h4>
+                <h4 className="font-extrabold text-sm text-[#134E4A]">Pronunciation & Vocab</h4>
               </div>
             </div>
 
             {latestVocab.length > 0 ? (
               <div className="space-y-3">
                 {latestVocab.map((v, i) => (
-                  <div key={i} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5 text-xs">
+                  <div key={i} className="p-3 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900 dark:text-white text-sm">{v.word}</span>
+                      <span className="font-extrabold text-[#134E4A] text-sm">{v.word}</span>
                       <button
                         onClick={() => handleSaveVocabItem(v)}
-                        className="p-1 rounded-lg text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-950 transition-colors"
+                        className="p-1 rounded-lg text-[#0F766E] hover:bg-teal-200/60 transition-colors"
                         title="Save to Vocab Vault"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
-                    <p className="text-slate-600 dark:text-slate-300">{v.definition}</p>
-                    <p className="text-[11px] text-slate-400 italic">"{v.example}"</p>
+                    <p className="text-teal-900/80 font-medium">{v.definition}</p>
+                    <p className="text-[11px] text-teal-700 italic">"{v.example}"</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 dark:text-slate-400 italic py-4 text-center">
+              <p className="text-xs text-teal-800/70 font-medium italic py-4 text-center">
                 Keywords and advanced terms extracted during conversation will appear here.
               </p>
             )}
           </div>
 
           {/* Suggested Phrases Guide */}
-          <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm space-y-3">
-            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">
+          <div className="rounded-3xl bg-[#E6F1EF] border border-[#CBDED9] p-5 shadow-sm space-y-3">
+            <h4 className="font-extrabold text-xs uppercase tracking-wider text-teal-800/70">
               Suggested Hints ({activeScenario.title})
             </h4>
             <div className="space-y-2">
@@ -741,7 +741,7 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                 <button
                   key={idx}
                   onClick={() => setInputText(phrase)}
-                  className="w-full text-left p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-xs text-slate-700 dark:text-slate-300 hover:text-indigo-600 transition-colors"
+                  className="w-full text-left p-2.5 rounded-xl bg-[#DCEDE9] hover:bg-teal-100 text-xs text-[#134E4A] font-semibold hover:text-[#0F766E] transition-colors border border-[#CBDED9]"
                 >
                   "{phrase}"
                 </button>
@@ -759,15 +759,15 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-[#CBDED9] pb-4">
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white shadow-md">
+                <div className="p-3 rounded-2xl bg-ai-gradient text-white shadow-md">
                   <Award className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Session Speaking Performance Report</h2>
-                  <p className="text-xs text-slate-500">
-                    Scenario: <strong className="text-indigo-600 dark:text-sky-400">{activeScenario.title}</strong> • Partner: <strong>{activePersona.name}</strong>
+                  <h2 className="text-2xl font-extrabold text-[#134E4A]">Session Speaking Performance Report</h2>
+                  <p className="text-xs text-teal-800/70 font-medium">
+                    Scenario: <strong className="text-[#0F766E]">{activeScenario.title}</strong> • Partner: <strong>{activePersona.name}</strong>
                   </p>
                 </div>
               </div>
@@ -777,7 +777,7 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                   setShowEvaluationModal(false);
                   onNavigate('dashboard');
                 }}
-                className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-2 rounded-xl text-teal-800 hover:bg-teal-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -785,9 +785,9 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
 
             {evalLoading ? (
               <div className="py-16 text-center space-y-4">
-                <RefreshCw className="w-10 h-10 text-indigo-500 animate-spin mx-auto" />
-                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Analyzing Your Speech & Grammar Performance...</h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                <RefreshCw className="w-10 h-10 text-[#0F766E] animate-spin mx-auto" />
+                <h3 className="text-lg font-bold text-[#134E4A]">Analyzing Your Speech & Grammar Performance...</h3>
+                <p className="text-xs text-teal-800/70 max-w-md mx-auto">
                   Gemini AI is evaluating your fluency, vocabulary richness, pronunciation clarity, and grammatical precision.
                 </p>
               </div>
@@ -795,36 +795,36 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
               <div className="space-y-6">
                 
                 {/* Top Score Scorecard */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white shadow-lg">
-                  <div className="text-center md:border-r border-indigo-800/80 p-2">
-                    <p className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider">Overall Score</p>
-                    <p className="text-4xl font-extrabold text-sky-300 mt-1">{evalData.overallScore}/100</p>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-gradient-to-r from-[#042F2C] via-[#0F766E] to-[#115E59] text-white shadow-lg border border-[#14B8A6]/30">
+                  <div className="text-center md:border-r border-teal-700/60 p-2">
+                    <p className="text-[11px] font-bold text-teal-200 uppercase tracking-wider">Overall Score</p>
+                    <p className="text-4xl font-extrabold text-[#F59E0B] mt-1">{evalData.overallScore}/100</p>
                     <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">
                       Grade A
                     </span>
                   </div>
 
-                  <div className="text-center md:border-r border-indigo-800/80 p-2">
-                    <p className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider">Fluency</p>
+                  <div className="text-center md:border-r border-teal-700/60 p-2">
+                    <p className="text-[11px] font-bold text-teal-200 uppercase tracking-wider">Fluency</p>
                     <p className="text-3xl font-bold text-white mt-1">{evalData.scores?.fluency || 88}%</p>
-                    <p className="text-[10px] text-slate-400 mt-1">Natural flow</p>
+                    <p className="text-[10px] text-teal-200/70 mt-1">Natural flow</p>
                   </div>
 
-                  <div className="text-center md:border-r border-indigo-800/80 p-2">
-                    <p className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider">Grammar</p>
+                  <div className="text-center md:border-r border-teal-700/60 p-2">
+                    <p className="text-[11px] font-bold text-teal-200 uppercase tracking-wider">Grammar</p>
                     <p className="text-3xl font-bold text-white mt-1">{evalData.scores?.grammar || 85}%</p>
-                    <p className="text-[10px] text-slate-400 mt-1">Structural accuracy</p>
+                    <p className="text-[10px] text-teal-200/70 mt-1">Structural accuracy</p>
                   </div>
 
                   <div className="text-center p-2">
-                    <p className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider">Vocabulary</p>
+                    <p className="text-[11px] font-bold text-teal-200 uppercase tracking-wider">Vocabulary</p>
                     <p className="text-3xl font-bold text-white mt-1">{evalData.scores?.vocabulary || 88}%</p>
-                    <p className="text-[10px] text-slate-400 mt-1">Word variety</p>
+                    <p className="text-[10px] text-teal-200/70 mt-1">Word variety</p>
                   </div>
                 </div>
 
                 {/* Tabs Navigation */}
-                <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-800 gap-2">
+                <div className="flex flex-wrap border-b border-[#CBDED9] gap-2">
                   {[
                     { id: 'metrics', label: '📊 Metrics Breakdown' },
                     { id: 'grammar', label: '📝 Grammar Doctor' },
@@ -835,10 +835,10 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                     <button
                       key={tab.id}
                       onClick={() => setActiveEvalTab(tab.id as any)}
-                      className={`px-4 py-2.5 rounded-t-2xl text-xs font-bold transition-colors ${
+                      className={`px-4 py-2.5 rounded-t-2xl text-xs font-bold transition-colors cursor-pointer ${
                         activeEvalTab === tab.id
-                          ? 'bg-indigo-600 text-white shadow-sm'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                          ? 'bg-[#0F766E] text-white shadow-sm'
+                          : 'bg-[#DCEDE9] text-[#134E4A] hover:bg-teal-100'
                       }`}
                     >
                       {tab.label}
@@ -859,13 +859,13 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                       { name: 'Naturalness', val: evalData.scores?.naturalness },
                       { name: 'Speaking Speed', val: evalData.scores?.speakingSpeed },
                     ].map((m, idx) => (
-                      <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 space-y-1.5">
+                      <div key={idx} className="p-3.5 rounded-2xl bg-[#E6F1EF] border border-[#CBDED9] space-y-1.5">
                         <div className="flex items-center justify-between font-bold">
-                          <span className="text-slate-800 dark:text-slate-200">{m.name}</span>
-                          <span className="text-indigo-600 dark:text-sky-400">{m.val || 88}%</span>
+                          <span className="text-[#134E4A]">{m.name}</span>
+                          <span className="text-[#0F766E]">{m.val || 88}%</span>
                         </div>
-                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                          <div className="bg-gradient-to-r from-indigo-500 to-sky-400 h-full rounded-full" style={{ width: `${m.val || 88}%` }} />
+                        <div className="w-full bg-[#CBDED9] h-2 rounded-full overflow-hidden">
+                          <div className="bg-ai-gradient h-full rounded-full" style={{ width: `${m.val || 88}%` }} />
                         </div>
                       </div>
                     ))}
@@ -877,23 +877,23 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                   <div className="space-y-3 text-xs">
                     {evalData.grammarAnalysis && evalData.grammarAnalysis.length > 0 ? (
                       evalData.grammarAnalysis.map((g: any, i: number) => (
-                        <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+                        <div key={i} className="p-4 rounded-2xl bg-[#E6F1EF] border border-[#CBDED9] space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-indigo-600 dark:text-sky-400 uppercase text-[10px] px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950">
+                            <span className="font-bold text-[#0F766E] uppercase text-[10px] px-2 py-0.5 rounded bg-[#DCEDE9] border border-[#CBDED9]">
                               {g.type}
                             </span>
                           </div>
                           <div className="space-y-1">
-                            <p className="text-rose-600 dark:text-rose-400 line-through">❌ {g.original}</p>
-                            <p className="text-emerald-600 dark:text-emerald-400 font-bold">✅ {g.corrected}</p>
+                            <p className="text-rose-600 line-through">❌ {g.original}</p>
+                            <p className="text-[#0F766E] font-bold">✅ {g.corrected}</p>
                           </div>
-                          <p className="text-slate-600 dark:text-slate-300 text-[11px] italic bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                          <p className="text-[#134E4A] text-[11px] italic bg-[#F3F7F6] p-2.5 rounded-xl border border-[#CBDED9]">
                             💡 {g.explanation}
                           </p>
                         </div>
                       ))
                     ) : (
-                      <p className="text-slate-500 italic text-center py-6">No major grammar errors detected. Great job speaking!</p>
+                      <p className="text-teal-800/70 italic text-center py-6 font-medium">No major grammar errors detected. Great job speaking!</p>
                     )}
                   </div>
                 )}
@@ -901,14 +901,14 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                 {/* Tab 3: Vocabulary */}
                 {activeEvalTab === 'vocab' && (
                   <div className="space-y-4 text-xs">
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-                      <h4 className="font-bold text-slate-800 dark:text-slate-200">Suggested Vocabulary Enhancements</h4>
+                    <div className="p-4 rounded-2xl bg-[#E6F1EF] border border-[#CBDED9] space-y-2">
+                      <h4 className="font-bold text-[#134E4A]">Suggested Vocabulary Enhancements</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {evalData.vocabularyFeedback?.advancedSuggestions?.map((item: any, idx: number) => (
-                          <div key={idx} className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1">
-                            <p className="text-slate-400 text-[10px]">Instead of <strong className="text-slate-700 dark:text-slate-300">"{item.original}"</strong>, try:</p>
-                            <p className="font-bold text-indigo-600 dark:text-sky-400 text-sm">{item.suggested}</p>
-                            <p className="text-[11px] text-slate-500">{item.definition}</p>
+                          <div key={idx} className="p-3 bg-[#F3F7F6] rounded-xl border border-[#CBDED9] space-y-1">
+                            <p className="text-teal-800/60 text-[10px]">Instead of <strong className="text-[#134E4A]">"{item.original}"</strong>, try:</p>
+                            <p className="font-bold text-[#0F766E] text-sm">{item.suggested}</p>
+                            <p className="text-[11px] text-teal-800/70">{item.definition}</p>
                           </div>
                         ))}
                       </div>
@@ -920,8 +920,8 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                 {activeEvalTab === 'pronunciation' && (
                   <div className="space-y-3 text-xs">
                     {evalData.pronunciationTips?.map((tip: string, idx: number) => (
-                      <div key={idx} className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 flex items-start space-x-3 text-sky-900 dark:text-sky-200">
-                        <CheckCircle2 className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />
+                      <div key={idx} className="p-3.5 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] flex items-start space-x-3 text-[#134E4A]">
+                        <CheckCircle2 className="w-5 h-5 text-[#0F766E] shrink-0 mt-0.5" />
                         <p className="leading-relaxed font-medium">{tip}</p>
                       </div>
                     ))}
@@ -931,24 +931,24 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                 {/* Tab 5: Summary */}
                 {activeEvalTab === 'summary' && (
                   <div className="space-y-4 text-xs">
-                    <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 space-y-2">
-                      <h4 className="font-bold text-indigo-900 dark:text-indigo-200 text-sm">Personalized Next Steps</h4>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{evalData.sessionSummary?.improvementPlan}</p>
+                    <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] space-y-2">
+                      <h4 className="font-bold text-[#134E4A] text-sm">Personalized Next Steps</h4>
+                      <p className="text-[#134E4A] leading-relaxed font-medium">{evalData.sessionSummary?.improvementPlan}</p>
                       <div className="pt-2">
-                        <p className="text-[11px] text-slate-400">Recommended Next Practice Topic:</p>
-                        <p className="font-bold text-indigo-600 dark:text-sky-400 text-sm">{evalData.sessionSummary?.suggestedNextTopic}</p>
+                        <p className="text-[11px] text-teal-800/70 font-medium">Recommended Next Practice Topic:</p>
+                        <p className="font-bold text-[#0F766E] text-sm">{evalData.sessionSummary?.suggestedNextTopic}</p>
                       </div>
                     </div>
                   </div>
                 )}
 
                 {/* Footer Modal Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-[#CBDED9]">
                   <button
                     onClick={() => handleDownloadTranscript('txt')}
-                    className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 flex items-center space-x-2"
+                    className="px-4 py-2.5 rounded-xl bg-[#DCEDE9] text-[#134E4A] font-bold text-xs hover:bg-teal-100 flex items-center space-x-2 cursor-pointer border border-[#CBDED9]"
                   >
-                    <Download className="w-4 h-4 text-indigo-500" />
+                    <Download className="w-4 h-4 text-[#0F766E]" />
                     <span>Download Report</span>
                   </button>
 
@@ -957,7 +957,7 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                       setShowEvaluationModal(false);
                       onNavigate('dashboard');
                     }}
-                    className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition-all"
+                    className="px-6 py-2.5 rounded-xl bg-ai-gradient hover:opacity-95 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
                   >
                     Return to Dashboard
                   </button>

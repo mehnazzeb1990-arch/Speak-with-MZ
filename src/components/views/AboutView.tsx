@@ -37,8 +37,8 @@ export const AboutView: React.FC = () => {
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-slate-900 p-8 border border-slate-200 dark:border-slate-800 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-100 dark:bg-cyan-950 text-cyan-600 flex items-center justify-center">
+        <div className="rounded-3xl bg-[#E6F1EF] p-8 border border-[#CBDED9] space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#DCEDE9] text-[#0F766E] flex items-center justify-center">
             <Globe className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-lg text-slate-900 dark:text-white">Accessible Worldwide</h3>

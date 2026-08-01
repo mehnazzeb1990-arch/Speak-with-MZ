@@ -31,26 +31,26 @@ export const RefundPolicyModal: React.FC<RefundPolicyModalProps> = ({ isOpen, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div className="relative w-full max-w-lg bg-[#E6F1EF] rounded-3xl shadow-2xl border border-[#CBDED9] overflow-hidden">
         
         {/* Header */}
-        <div className="p-6 bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white flex items-center justify-between">
+        <div className="p-6 bg-gradient-to-r from-[#042F2C] via-[#0F766E] to-[#0D9488] text-white flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-lg font-bold">14-Day 100% Refund Policy</h3>
+            <ShieldCheck className="w-5 h-5 text-[#14B8A6]" />
+            <h3 className="text-lg font-black">14-Day 100% Refund Policy</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10 text-slate-300">
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10 text-teal-200 cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {success ? (
           <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto animate-bounce">
+            <div className="w-16 h-16 bg-[#DCEDE9] text-[#0F766E] rounded-full flex items-center justify-center mx-auto border border-[#CBDED9] animate-bounce">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h4 className="text-xl font-extrabold text-slate-900 dark:text-white">Refund Request Processed!</h4>
-            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mx-auto">
+            <h4 className="text-xl font-black text-[#134E4A]">Refund Request Processed!</h4>
+            <p className="text-xs text-teal-900/80 font-medium max-w-sm mx-auto">
               Your refund of 100% of your subscription fee has been initiated. Funds will return to your original payment card / account within 3–5 business days.
             </p>
             <button
@@ -58,22 +58,22 @@ export const RefundPolicyModal: React.FC<RefundPolicyModalProps> = ({ isOpen, on
                 setSuccess(false);
                 onClose();
               }}
-              className="px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs"
+              className="px-6 py-2.5 rounded-xl bg-ai-gradient text-white font-black text-xs cursor-pointer shadow-md"
             >
               Done
             </button>
           </div>
         ) : (
-          <div className="p-6 space-y-6 text-slate-700 dark:text-slate-200">
+          <div className="p-6 space-y-6 text-[#134E4A]">
             {/* Policy Summary */}
-            <div className="space-y-3 text-xs leading-relaxed border-b border-slate-100 dark:border-slate-800 pb-5">
-              <div className="flex items-start space-x-2.5 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-300">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span>
-                  <strong>No-Questions-Asked Guarantee:</strong> If you are not completely satisfied with your Speak with MZ Intermediate or Advanced plan within 14 days of purchase, you get a full 100% refund.
+            <div className="space-y-3 text-xs leading-relaxed border-b border-[#CBDED9] pb-5">
+              <div className="flex items-start space-x-2.5 p-3 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] text-[#134E4A]">
+                <CheckCircle2 className="w-4 h-4 text-[#0F766E] shrink-0 mt-0.5" />
+                <span className="font-medium">
+                  <strong className="font-black text-[#134E4A]">No-Questions-Asked Guarantee:</strong> If you are not completely satisfied with your Speak with MZ Intermediate or Advanced plan within 14 days of purchase, you get a full 100% refund.
                 </span>
               </div>
-              <ul className="space-y-1 text-slate-500 dark:text-slate-400 text-[11px] list-disc list-inside">
+              <ul className="space-y-1 text-teal-900/80 font-medium text-[11px] list-disc list-inside">
                 <li>Instant processing to Visa, Mastercard, and Pakistani Debit / Bank accounts.</li>
                 <li>Your subscription reverts back to the 200 Beginner Free Plan upon refund.</li>
                 <li>PCI-compliant safe processing guarantee.</li>
@@ -83,16 +83,16 @@ export const RefundPolicyModal: React.FC<RefundPolicyModalProps> = ({ isOpen, on
             {/* Request Refund Form */}
             {eligiblePayments.length > 0 ? (
               <form onSubmit={handleSubmitRefund} className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Request 1-Click Refund</h4>
+                <h4 className="text-xs font-black uppercase tracking-wider text-teal-800/80">Request 1-Click Refund</h4>
                 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-[#134E4A] mb-1">
                     Select Eligible Purchase
                   </label>
                   <select
                     value={selectedPaymentId || eligiblePayments[0].id}
                     onChange={(e) => setSelectedPaymentId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs"
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs font-medium"
                   >
                     {eligiblePayments.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -103,13 +103,13 @@ export const RefundPolicyModal: React.FC<RefundPolicyModalProps> = ({ isOpen, on
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-[#134E4A] mb-1">
                     Reason for Refund (Optional)
                   </label>
                   <select
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs"
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs font-medium"
                   >
                     <option value="Changed my mind">Changed my mind</option>
                     <option value="Did not use feature enough">Did not use feature enough</option>
@@ -121,7 +121,7 @@ export const RefundPolicyModal: React.FC<RefundPolicyModalProps> = ({ isOpen, on
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors flex items-center justify-center space-x-2"
+                  className="w-full py-3 rounded-xl bg-[#F59E0B] hover:bg-amber-600 text-slate-950 font-black text-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer shadow-md"
                 >
                   {submitting ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -131,8 +131,8 @@ export const RefundPolicyModal: React.FC<RefundPolicyModalProps> = ({ isOpen, on
                 </button>
               </form>
             ) : (
-              <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center text-xs text-slate-500">
-                <AlertCircle className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+              <div className="p-4 rounded-xl bg-[#DCEDE9] text-center text-xs text-teal-900/80 font-medium border border-[#CBDED9]">
+                <AlertCircle className="w-6 h-6 text-teal-700/60 mx-auto mb-1" />
                 No active paid transactions eligible for refund.
               </div>
             )}

@@ -93,13 +93,13 @@ export const SubscriptionView: React.FC = () => {
           <div className="inline-flex items-center p-1 rounded-2xl bg-slate-200 dark:bg-slate-800 text-xs font-bold border border-slate-300 dark:border-slate-700">
             <button
               onClick={() => setCurrency('USD')}
-              className={`px-3 py-1.5 rounded-xl transition-all ${currency === 'USD' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+              className={`px-3 py-1.5 rounded-xl transition-all ${currency === 'USD' ? 'bg-[#0F766E] text-white shadow-sm' : 'text-teal-900/80 font-medium'}`}
             >
               USD ($)
             </button>
             <button
               onClick={() => setCurrency('PKR')}
-              className={`px-3 py-1.5 rounded-xl transition-all ${currency === 'PKR' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+              className={`px-3 py-1.5 rounded-xl transition-all ${currency === 'PKR' ? 'bg-[#0F766E] text-white shadow-sm' : 'text-teal-900/80 font-medium'}`}
             >
               PKR (Rs.)
             </button>
@@ -164,9 +164,9 @@ export const SubscriptionView: React.FC = () => {
                     setSelectedPlanToUpgrade('intermediate_premium');
                     setCheckoutModalOpen(true);
                   }}
-                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-extrabold text-xs shadow-md shadow-indigo-500/25 transition-all flex items-center space-x-1.5"
+                  className="px-5 py-2.5 rounded-2xl bg-ai-gradient hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-teal-900/20 transition-all flex items-center space-x-1.5 cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <Sparkles className="w-4 h-4 text-[#F59E0B]" />
                   <span>{user?.subscriptionPlan === 'free' ? 'Upgrade Plan ($10/mo)' : 'Change / Upgrade Plan'}</span>
                 </button>
               </div>

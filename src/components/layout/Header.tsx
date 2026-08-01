@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
   };
 
   return (
-    <header id="app-main-header" className="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-slate-200/80 dark:border-slate-800 transition-colors duration-200">
+    <header id="app-main-header" className="sticky top-0 z-50 backdrop-blur-md bg-[#E6F1EF]/90 dark:bg-slate-900/90 border-b border-[#CBDED9] dark:border-slate-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Brand Logo */}
@@ -52,15 +52,15 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
           className="flex items-center space-x-3 cursor-pointer group"
           id="brand-logo-button"
         >
-          <div className="w-10 h-10 bg-gradient-to-tr from-[#4F46E5] via-[#8B5CF6] to-[#EC4899] rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-200">
+          <div className="w-10 h-10 bg-gradient-to-tr from-[#0F766E] via-[#14B8A6] to-[#F59E0B] rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-teal-700/20 group-hover:scale-105 transition-transform duration-200">
             MZ
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Speak with</span>
-              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-600 to-sky-500 dark:from-indigo-400 dark:to-sky-300 bg-clip-text text-transparent">MZ</span>
+              <span className="font-bold text-xl tracking-tight text-[#134E4A] dark:text-white">Speak with</span>
+              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-[#0F766E] to-[#14B8A6] dark:from-teal-400 dark:to-teal-200 bg-clip-text text-transparent">MZ</span>
             </div>
-            <span className="text-[10px] uppercase font-semibold tracking-wider text-indigo-600 dark:text-sky-300 block -mt-1">
+            <span className="text-[10px] uppercase font-semibold tracking-wider text-[#0F766E] dark:text-teal-300 block -mt-1">
               AI English Coach
             </span>
           </div>
@@ -73,8 +73,8 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
             onClick={() => handleNavClick('home')}
             className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
               currentView === 'home'
-                ? 'text-indigo-600 dark:text-sky-300 bg-indigo-50 dark:bg-indigo-950/60 font-semibold border border-indigo-100 dark:border-indigo-900/40'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/50'
+                ? 'text-[#0F766E] dark:text-teal-300 bg-[#DCEDE9] dark:bg-teal-950/60 font-semibold border border-[#CBDED9]'
+                : 'text-[#134E4A]/80 dark:text-slate-300 hover:text-[#134E4A] hover:bg-[#DCEDE9]/60'
             }`}
           >
             Home
@@ -87,11 +87,11 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
                 onClick={() => handleNavClick('speaking')}
                 className={`px-3.5 py-2 rounded-xl text-sm font-bold transition-all flex items-center space-x-1.5 ${
                   currentView === 'speaking'
-                    ? 'bg-gradient-to-r from-indigo-600 to-sky-600 text-white shadow-md shadow-indigo-500/25'
-                    : 'text-indigo-700 dark:text-sky-300 bg-indigo-50/80 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-100 dark:border-indigo-900/40'
+                    ? 'bg-ai-gradient text-white shadow-md shadow-teal-700/20'
+                    : 'text-[#0F766E] bg-teal-50 dark:bg-teal-950/50 hover:bg-teal-100 border border-[#CBDED9]'
                 }`}
               >
-                <Mic className="w-4 h-4 animate-pulse" />
+                <Mic className="w-4 h-4 animate-pulse text-teal-200" />
                 <span>Speak Now</span>
               </button>
 
@@ -314,16 +314,16 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
               <button
                 id="header-login-button"
                 onClick={() => handleNavClick('login')}
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-bold text-[#312E81] hover:bg-indigo-100/60 transition-colors"
               >
-                Log In
+                Login
               </button>
               <button
                 id="header-register-button"
                 onClick={() => handleNavClick('register')}
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 shadow-sm shadow-indigo-500/25 transition-all"
+                className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-ai-gradient shadow-md shadow-indigo-500/20 hover:opacity-95 transition-all"
               >
-                Start Free
+                Create Account
               </button>
             </div>
           )}
@@ -392,19 +392,32 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
             About Us
           </button>
 
-          {!isAuthenticated && (
+          {isAuthenticated ? (
+            <div className="pt-4 flex flex-col space-y-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={() => {
+                  logout();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-2.5 rounded-xl text-center font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 flex items-center justify-center space-x-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
+            </div>
+          ) : (
             <div className="pt-4 flex flex-col space-y-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={() => handleNavClick('login')}
-                className="w-full py-2.5 rounded-xl text-center font-semibold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800"
+                className="w-full py-2.5 rounded-xl text-center font-bold text-[#312E81] bg-[#EEEAF8] border border-[#D6CCE9]"
               >
-                Log In
+                Login
               </button>
               <button
                 onClick={() => handleNavClick('register')}
-                className="w-full py-2.5 rounded-xl text-center font-semibold text-white bg-indigo-600 hover:bg-indigo-500"
+                className="w-full py-2.5 rounded-xl text-center font-bold text-white bg-ai-gradient shadow-sm"
               >
-                Start Free Trial
+                Create Account
               </button>
             </div>
           )}
