@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { SubscriptionPlan, Currency } from '../../types';
+import { SubscriptionPlan, PaymentMethodType } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { X, Check, ShieldCheck, CreditCard, Lock, Sparkles, Building2, Landmark, Wallet } from 'lucide-react';
+import { paymentService } from '../../services/paymentService';
+import { X, Check, ShieldCheck, CreditCard, Lock, Sparkles } from 'lucide-react';
 
 interface StripeCheckoutModalProps {
   plan: SubscriptionPlan;
@@ -14,14 +15,12 @@ interface StripeCheckoutModalProps {
 export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({ plan, isOpen, onClose, onSuccess, onCancel }) => {
   const { upgradePlan, currency, setCurrency } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [paymentMethodCategory, setPaymentMethodCategory] = useState<'card' | 'pakistan_bank' | 'wallet'>('card');
-  const [paymentProvider, setPaymentProvider] = useState<string>('Visa / Mastercard');
-  
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>('Visa');
+
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [expDate, setExpDate] = useState('12/28');
   const [cvc, setCvc] = useState('987');
   const [name, setName] = useState('MZ User');
-  const [accountNumber, setAccountNumber] = useState('0300 1234567');
   const [success, setSuccess] = useState(false);
 
   if (!isOpen) return null;
@@ -60,27 +59,29 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({ plan, 
     e.preventDefault();
     setLoading(true);
 
-    try {
-      // Call backend Stripe API endpoint if available
-      fetch('/api/stripe/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, currency, paymentProvider }),
-      }).catch(() => {});
-    } catch (e) {}
+    // Process payment through modular payment service layer
+    const result = await paymentService.processCardPayment({
+      plan,
+      currency,
+      paymentMethod: selectedMethod,
+      cardNumber,
+      cardholderName: name,
+      expDate,
+      cvc,
+    });
 
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    
-    const last4 = paymentMethodCategory === 'card' ? cardNumber.slice(-4) || '4242' : '9981';
-    upgradePlan(plan, paymentProvider, last4);
-    
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(() => {
-      setSuccess(false);
-      onSuccess?.();
-      onClose();
-    }, 1500);
+    if (result.success) {
+      upgradePlan(plan, selectedMethod, result.last4);
+      setLoading(false);
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        onSuccess?.();
+        onClose();
+      }, 1500);
+    } else {
+      setLoading(false);
+    }
   };
 
   const handleModalClose = () => {
@@ -96,7 +97,10 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({ plan, 
         <div className="p-6 bg-gradient-to-r from-[#042F2C] via-[#0F766E] to-[#0D9488] text-white flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-5 h-5 text-[#F59E0B]" />
-            <h3 className="text-lg font-black">PCI-Compliant Checkout</h3>
+            <div>
+              <h3 className="text-lg font-black">Secure Online Payment</h3>
+              <p className="text-[11px] text-teal-200">Pay securely using your Visa or Mastercard.</p>
+            </div>
           </div>
 
           <div className="flex items-center space-x-3">
@@ -150,193 +154,91 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({ plan, 
               </span>
             </div>
 
-            {/* Payment Method Category Tabs */}
+            {/* Accepted Payment Methods */}
             <div>
               <label className="block text-xs font-bold uppercase text-teal-800/80 mb-2">
-                Select Payment Category
+                Accepted Payment Methods
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPaymentMethodCategory('card');
-                    setPaymentProvider('Visa / Mastercard');
-                  }}
-                  className={`p-2.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center space-y-1 cursor-pointer ${
-                    paymentMethodCategory === 'card'
-                      ? 'border-[#0F766E] bg-[#DCEDE9] text-[#0F766E] font-black'
-                      : 'border-[#CBDED9] text-[#134E4A] hover:bg-teal-100/60'
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4" />
-                  <span>Card / Intl</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPaymentMethodCategory('pakistan_bank');
-                    setPaymentProvider('Pakistani Debit Card (1Link/PayPak)');
-                  }}
-                  className={`p-2.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center space-y-1 cursor-pointer ${
-                    paymentMethodCategory === 'pakistan_bank'
-                      ? 'border-[#0F766E] bg-[#DCEDE9] text-[#0F766E] font-black'
-                      : 'border-[#CBDED9] text-[#134E4A] hover:bg-teal-100/60'
-                  }`}
-                >
-                  <Landmark className="w-4 h-4" />
-                  <span>Pak Bank / 1Link</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPaymentMethodCategory('wallet');
-                    setPaymentProvider('JazzCash / EasyPaisa');
-                  }}
-                  className={`p-2.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center space-y-1 cursor-pointer ${
-                    paymentMethodCategory === 'wallet'
-                      ? 'border-[#0F766E] bg-[#DCEDE9] text-[#0F766E] font-black'
-                      : 'border-[#CBDED9] text-[#134E4A] hover:bg-teal-100/60'
-                  }`}
-                >
-                  <Wallet className="w-4 h-4" />
-                  <span>Mobile Wallet</span>
-                </button>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(['Visa', 'Mastercard', 'Debit Card', 'Credit Card'] as PaymentMethodType[]).map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setSelectedMethod(method)}
+                    className={`p-2.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center justify-center space-y-1 cursor-pointer ${
+                      selectedMethod === method
+                        ? 'border-[#0F766E] bg-[#DCEDE9] text-[#0F766E] font-black'
+                        : 'border-[#CBDED9] text-[#134E4A] hover:bg-teal-100/60'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    <span className="text-center">{method}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Payment Sub-options */}
-            {paymentMethodCategory === 'card' && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-teal-800/80">
-                  <span>Supported Cards:</span>
-                  <span className="font-extrabold text-[#134E4A]">Visa, Mastercard, Amex, Intl Cards</span>
-                </div>
-                
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Cardholder Name</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-medium"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Card Number</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
-                      required
-                    />
-                    <CreditCard className="w-4 h-4 text-teal-700/60 absolute left-3 top-2.5" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Expiry (MM/YY)</label>
-                    <input
-                      type="text"
-                      value={expDate}
-                      onChange={(e) => setExpDate(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">CVC Code</label>
-                    <input
-                      type="text"
-                      value={cvc}
-                      onChange={(e) => setCvc(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
-                      required
-                    />
-                  </div>
-                </div>
+            {/* Card Inputs */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs text-teal-800/80">
+                <span>Supported Cards:</span>
+                <span className="font-extrabold text-[#134E4A]">Visa, Mastercard, Debit Cards, Credit Cards</span>
               </div>
-            )}
+              
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Cardholder Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-medium"
+                  required
+                />
+              </div>
 
-            {paymentMethodCategory === 'pakistan_bank' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Select Bank / Network</label>
-                  <select
-                    value={paymentProvider}
-                    onChange={(e) => setPaymentProvider(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs font-medium"
-                  >
-                    <option value="Pakistani Debit Card (1Link/PayPak)">1Link / PayPak Debit Card</option>
-                    <option value="HBL Bank">HBL (Habib Bank Limited)</option>
-                    <option value="Meezan Bank">Meezan Bank Internet Banking</option>
-                    <option value="Allied Bank">Allied Bank / Alfalah</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Card or Account Title</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-medium"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Debit Card Number (16 Digits)</label>
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Card Number</label>
+                <div className="relative">
                   <input
                     type="text"
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
+                    className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
                     required
                   />
+                  <CreditCard className="w-4 h-4 text-teal-700/60 absolute left-3 top-2.5" />
                 </div>
               </div>
-            )}
 
-            {paymentMethodCategory === 'wallet' && (
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Mobile Wallet Service</label>
-                  <select
-                    value={paymentProvider}
-                    onChange={(e) => setPaymentProvider(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs font-medium"
-                  >
-                    <option value="JazzCash">JazzCash Mobile Wallet</option>
-                    <option value="EasyPaisa">EasyPaisa Mobile Wallet</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Registered Mobile Number</label>
+                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Expiry (MM/YY)</label>
                   <input
                     type="text"
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value)}
+                    value={expDate}
+                    onChange={(e) => setExpDate(e.target.value)}
                     className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
                     required
                   />
-                  <p className="text-[10px] text-teal-800/70 font-medium mt-1">You will receive a 1-time approval prompt on your mobile wallet app.</p>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">CVC Code</label>
+                  <input
+                    type="text"
+                    value={cvc}
+                    onChange={(e) => setCvc(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
+                    required
+                  />
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Strict Security PCI Notice */}
+            {/* Provider Notice */}
             <div className="p-3.5 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] flex items-start space-x-2.5 text-xs text-[#134E4A]">
               <Lock className="w-4 h-4 text-[#0F766E] shrink-0 mt-0.5" />
               <div className="text-[11px] leading-relaxed font-medium">
-                <span className="font-extrabold text-[#134E4A]">PCI-DSS Compliant Security:</span> We NEVER store card or bank login details on our servers. All transactions are processed through 256-bit SSL encrypted bank tokens.
+                <span className="font-extrabold text-[#134E4A]">Secure online payment:</span> Your payment is processed through our secure payment provider using PCI-DSS 256-bit SSL encryption.
               </div>
             </div>
 

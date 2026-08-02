@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { audioService } from '../../services/audio';
+import { DEFAULT_AI_VOICE } from '../../config/voice';
 import { 
   Volume2, 
   Mic, 
@@ -22,48 +24,45 @@ export const PronunciationTrainingView: React.FC<PronunciationTrainingViewProps>
       title: '1. Word Stress & Syllables',
       desc: 'In English, stressing the wrong syllable changes word meaning (e.g., RECORD vs reCORD).',
       examples: [
-        { word: 'PHO-to-graph', stress: 'First syllable stressed' },
-        { word: 'pho-TOG-ra-phy', stress: 'Second syllable stressed' },
-        { word: 'pho-to-GRAPH-ic', stress: 'Third syllable stressed' }
+        { word: 'PHO-to-graph', speakText: 'photograph', ipa: '/ˈfoʊ.tə.ɡræf/', stress: 'First syllable stressed' },
+        { word: 'pho-TOG-ra-phy', speakText: 'photography', ipa: '/fəˈtɑː.ɡrə.fi/', stress: 'Second syllable stressed' },
+        { word: 'pho-to-GRAPH-ic', speakText: 'photographic', ipa: '/ˌfoʊ.təˈɡræf.ɪk/', stress: 'Third syllable stressed (primary stress on GRAPH)' }
       ]
     },
     {
       title: '2. Sentence Stress & Rhythm',
       desc: 'English is a stress-timed language. Nouns, main verbs, and adjectives receive emphasis while prepositions compress.',
       examples: [
-        { word: '"CATS CHASE MICE"', stress: '3 key content beats' },
-        { word: '"The CATS have been CHASING the MICE"', stress: 'Same 3 key beats taking equal time!' }
+        { word: '"CATS CHASE MICE"', speakText: 'Cats chase mice.', ipa: '/kæts tʃeɪs maɪs/', stress: '3 key content beats' },
+        { word: '"The CATS have been CHASING the MICE"', speakText: 'The cats have been chasing the mice.', ipa: '/ðə kæts həv bɪn ˈtʃeɪsɪŋ ðə maɪs/', stress: 'Same 3 key beats taking equal time!' }
       ]
     },
     {
       title: '3. Intonation & Pitch Contours',
       desc: 'Rising intonation signals questions or non-final statements. Falling intonation signals certainty and finality.',
       examples: [
-        { word: 'Are you ready? ↗', stress: 'Rising pitch at sentence end' },
-        { word: 'Yes, I am completely ready. ↘', stress: 'Falling pitch signals completion' }
+        { word: 'Are you ready? ↗', speakText: 'Are you ready?', ipa: 'Rising Contour (↗)', stress: 'Rising pitch at sentence end' },
+        { word: 'Yes, I am completely ready. ↘', speakText: 'Yes, I am completely ready.', ipa: 'Falling Contour (↘)', stress: 'Falling pitch signals completion' }
       ]
     },
     {
       title: '4. Connected Speech & Assimilation',
       desc: 'Words link together seamlessly in natural speech (e.g., "pick it up" sounds like "pi-ki-tup").',
       examples: [
-        { word: 'What do you want? → "Whaddya want?"', stress: 'Natural casual linkage' },
-        { word: 'Out of time → "Ou-ta-time"', stress: 'Smooth consonant transition' }
+        { word: 'What do you want? → "Whaddya want?"', speakText: 'What do you want? Whaddya want?', ipa: '/wɑːdəjə wɑːnt/', stress: 'Natural casual linkage' },
+        { word: 'Out of time → "Ou-ta-time"', speakText: 'Out of time. Out of time.', ipa: '/aʊtə taɪm/', stress: 'Smooth consonant transition' }
       ]
     }
   ];
 
-  const handleSpeak = (text: string, idx: number) => {
+  const handleSpeak = async (text: string, idx: number) => {
     setActiveSpeechIndex(idx);
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85;
-      utterance.onend = () => setActiveSpeechIndex(null);
-      window.speechSynthesis.speak(utterance);
-    } else {
-      setTimeout(() => setActiveSpeechIndex(null), 1500);
-    }
+    await audioService.speak(text, {
+      voiceId: DEFAULT_AI_VOICE.voice,
+      gender: 'female',
+      rate: 0.85,
+    });
+    setActiveSpeechIndex(null);
   };
 
   return (
@@ -105,12 +104,19 @@ export const PronunciationTrainingView: React.FC<PronunciationTrainingViewProps>
                 return (
                   <div key={i} className="p-3 rounded-2xl bg-white border border-[#CBDED9] flex items-center justify-between">
                     <div>
-                      <p className="font-extrabold text-xs text-[#134E4A]">{ex.word}</p>
+                      <div className="flex items-center space-x-2">
+                        <p className="font-extrabold text-xs text-[#134E4A]">{ex.word}</p>
+                        {ex.ipa && (
+                          <span className="text-[10px] font-mono text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200/60">
+                            {ex.ipa}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-teal-800/70 font-medium">{ex.stress}</p>
                     </div>
                     <button
-                      onClick={() => handleSpeak(ex.word, globalIdx)}
-                      className="px-3 py-1.5 rounded-xl bg-[#DCEDE9] hover:bg-[#CBDED9] text-[#0F766E] font-bold text-xs flex items-center space-x-1 cursor-pointer"
+                      onClick={() => handleSpeak(ex.speakText || ex.word, globalIdx)}
+                      className="px-3 py-1.5 rounded-xl bg-[#DCEDE9] hover:bg-[#CBDED9] text-[#0F766E] font-bold text-xs flex items-center space-x-1 cursor-pointer shrink-0 ml-2"
                     >
                       <Volume2 className={`w-3.5 h-3.5 ${activeSpeechIndex === globalIdx ? 'animate-bounce text-[#0F766E]' : ''}`} />
                       <span>Listen</span>

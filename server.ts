@@ -167,7 +167,16 @@ app.post('/api/elevenlabs/tts', async (req, res) => {
 // Gemini Speaking Partner endpoint
 app.post('/api/gemini/chat', async (req, res) => {
   try {
-    const { message, persona = 'MZ', level = 'Intermediate', scenario = 'Free Conversation', conversationHistory = [], userName = 'Learner' } = req.body;
+    const { 
+      message, 
+      persona = 'MZ', 
+      level = 'Intermediate', 
+      scenario = 'Free Conversation', 
+      conversationHistory = [], 
+      userName = 'Learner',
+      topicContext = null,
+      activityType = 'Free Conversation'
+    } = req.body;
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message text is required' });
@@ -190,16 +199,26 @@ app.post('/api/gemini/chat', async (req, res) => {
             ? 'Use rich, sophisticated vocabulary and natural phrasal verbs. Encourage deep critical thinking, debates, and professional/academic nuances.'
             : 'Maintain an engaging conversational tone with standard idiomatic expressions. Prompt for opinions and descriptive details.';
 
+        const topicInfo = topicContext ? `
+Active Learning Topic: "${topicContext.title || scenario}"
+Topic Objective: "${topicContext.learningObjective || 'Build natural fluency'}"
+Target Grammar Focus: "${topicContext.commonGrammarFocus || 'Natural structure'}"
+Selected Activity Mode: "${activityType}"
+Suggested Target Vocab: ${JSON.stringify(topicContext.suggestedVocabulary || [])}
+` : `Scenario Context: "${scenario}". Selected Activity Mode: "${activityType}"`;
+
         const systemInstruction = `
 You are "${persona}", an empathetic, friendly, highly human-like English Speaking Partner for ${userName} on the platform "Speak with MZ".
 Learner's Level: "${level}". ${levelInstructions}
-Scenario Context: "${scenario}".
+${topicInfo}
 
 Human-like Empathy & Behavioral Rules:
-1. Always listen attentively to feelings (e.g., if the user says "I failed my interview", respond with genuine empathy: "I'm so sorry to hear that. Interviews can be tough, but every attempt is a stepping stone. Want to practice interview questions together?").
-2. Ask natural, engaging follow-up questions to keep the conversation flowing smoothly without forcing rigid topics.
-3. Remember previous messages in conversation history, avoid repeating identical answers, and never sound like a robotic script.
-4. Analyze the user's input for any grammar, vocabulary, or natural phrasing improvements.
+1. You are actively guiding ${userName} through the topic "${topicContext?.title || scenario}" using activity mode "${activityType}".
+2. Adapt your questions to this specific topic. Ask natural, engaging follow-up questions to keep the conversation flowing smoothly.
+3. Never repeat identical questions or revert to generic greetings mid-conversation.
+4. Encourage longer, expressive answers by asking open-ended questions.
+5. Remember previous messages in conversation history and maintain context throughout the session.
+6. Analyze the user's input for any grammar, vocabulary, or natural phrasing improvements.
 
 You MUST respond strictly with valid JSON with the following structure:
 {
@@ -464,7 +483,7 @@ Your role is to help users with:
 1. Account setup (Registration, Login, Password Reset, Profile Settings)
 2. Speaking practice (Speaking Studio, Scenarios, Speech Analysis, Fluency Scoring)
 3. AI features (Gemini AI partner, ElevenLabs TTS voice synthesis, Grammar feedback, Vocabulary Vault)
-4. Subscription plans & Billing (Free Beginner 200 min/mo, Intermediate Plan $15/mo or PKR 3,900/mo, Advanced Plan $29/mo or PKR 7,900/mo, 14-day 100% refund policy, Payment methods: Visa, Mastercard, 1Link/PayPak, JazzCash, EasyPaisa)
+4. Subscription plans & Billing (Free Beginner 200 min/mo, Intermediate Plan $15/mo or PKR 3,900/mo, Advanced Plan $29/mo or PKR 7,900/mo, 14-day 100% refund policy, Payment methods: Visa, Mastercard, Debit Cards, Credit Cards)
 5. Technical issues (Microphone permissions, audio playback, browser compatibility)
 
 Tone: Professional, warm, empathetic, concise, and helpful. Format your responses with bullet points or bold text where appropriate.

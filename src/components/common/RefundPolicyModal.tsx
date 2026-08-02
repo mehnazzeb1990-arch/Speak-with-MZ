@@ -74,7 +74,7 @@ export const RefundPolicyModal: React.FC<RefundPolicyModalProps> = ({ isOpen, on
                 </span>
               </div>
               <ul className="space-y-1 text-teal-900/80 font-medium text-[11px] list-disc list-inside">
-                <li>Instant processing to Visa, Mastercard, and Pakistani Debit / Bank accounts.</li>
+                <li>Instant processing to Visa, Mastercard, Debit Cards, and Credit Cards.</li>
                 <li>Your subscription reverts back to the 200 Beginner Free Plan upon refund.</li>
                 <li>PCI-compliant safe processing guarantee.</li>
               </ul>

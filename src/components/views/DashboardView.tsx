@@ -131,8 +131,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
     },
     {
       id: 'sess_3',
-      title: 'IELTS Speaking Part 2 Monologue',
-      scenarioCategory: 'Academic Exam',
+      title: 'Topic Presentation & Storytelling',
+      scenarioCategory: 'Fluency Practice',
       personaName: 'Coach MZ',
       timestamp: '2 days ago',
       duration: '18 mins',
@@ -371,7 +371,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
               <p className="text-xs text-teal-800/80 font-medium mt-0.5">Continuous speech flow & natural speed</p>
             </div>
             <div className="text-[11px] font-bold text-emerald-700 bg-emerald-500/10 px-2.5 py-1 rounded-xl text-center">
-              Band 7.5 • Good Flow
+              High Fluency • Good Flow
             </div>
           </div>
 
@@ -533,7 +533,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
             </div>
             <h4 className="font-extrabold text-sm text-[#134E4A]">Use the PREP Response Framework</h4>
             <p className="text-xs text-teal-900/80 font-medium leading-relaxed">
-              When answering interview questions or Part 2 IELTS topics, follow: <strong>Point</strong> → <strong>Reason</strong> → <strong>Example</strong> → <strong>Point</strong>. This organizes your thoughts without pauses!
+              When answering interview questions or daily discussion topics, follow: <strong>Point</strong> → <strong>Reason</strong> → <strong>Example</strong> → <strong>Point</strong>. This organizes your thoughts without pauses!
             </p>
           </div>
 

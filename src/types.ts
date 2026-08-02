@@ -2,6 +2,8 @@ export type EnglishLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 export type SubscriptionPlan = 'free' | 'intermediate_premium' | 'advanced_premium';
 export type Currency = 'USD' | 'PKR';
 
+export type PaymentMethodType = 'Visa' | 'Mastercard' | 'Debit Card' | 'Credit Card';
+
 export interface PaymentRecord {
   id: string;
   invoiceId: string;
@@ -13,7 +15,7 @@ export interface PaymentRecord {
   amountUSD: number;
   amountPKR: number;
   currencyUsed: Currency;
-  paymentMethod: 'Visa' | 'Mastercard' | 'Pakistani Debit Card (1Link/PayPak)' | 'HBL Bank' | 'Meezan Bank' | 'JazzCash' | 'EasyPaisa' | 'International Card';
+  paymentMethod: PaymentMethodType | string;
   cardLast4?: string;
   date: string;
   status: 'paid' | 'refunded' | 'pending' | 'failed';

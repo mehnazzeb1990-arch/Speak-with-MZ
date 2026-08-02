@@ -306,7 +306,7 @@ export const SubscriptionView: React.FC = () => {
               <div className="text-2xl font-black text-slate-900 dark:text-white">
                 {payments.length} Payments
               </div>
-              <span className="text-[11px] text-slate-500 block">Visa, Mastercard, 1Link & JazzCash</span>
+              <span className="text-[11px] text-slate-500 block">Visa, Mastercard, Debit & Credit Cards</span>
             </div>
 
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">

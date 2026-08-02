@@ -36,10 +36,10 @@ export const WhySpeakingView: React.FC<WhySpeakingViewProps> = ({ onNavigate }) 
       actionableTip: 'Use full sentences instead of single words during practice.',
     },
     {
-      id: 'ielts',
-      title: 'Improve IELTS & Exam Scores',
+      id: 'fluency',
+      title: 'Master Spontaneous Conversation & Public Speaking',
       icon: GraduationCap,
-      description: 'Ace IELTS Speaking Part 1, Part 2 cue cards, and Part 3 analytical discussions with real-time feedback.',
+      description: 'Deliver confident answers, spontaneous monologues, and analytical discussions with real-time feedback.',
       actionableTip: 'Practice timed 2-minute topical monologues in Speaking Studio.',
     },
     {

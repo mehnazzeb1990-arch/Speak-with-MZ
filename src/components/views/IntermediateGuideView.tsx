@@ -48,9 +48,9 @@ export const IntermediateGuideView: React.FC<IntermediateGuideViewProps> = ({ on
       topics: ['Keyword Extraction', 'Asking Clarification Questions', 'Paraphrasing What You Heard'],
     },
     {
-      title: '7. IELTS Speaking Preparation (B2-C1)',
-      desc: 'Structured strategies for Part 1 intro questions, Part 2 long turn cue cards, and Part 3 analytical arguments.',
-      topics: ['2-Minute Cue Card Structure', 'Band 7+ Lexical Resource', 'Cohesion Markers'],
+      title: '7. Advanced Spontaneous Fluency (B2-C1)',
+      desc: 'Structured strategies for introduction responses, 2-minute topic presentations, and analytical arguments.',
+      topics: ['2-Minute Topic Structure', 'Advanced Lexical Resource', 'Cohesion Markers'],
     },
     {
       title: '8. Speaking Confidently Under Pressure',
@@ -71,7 +71,7 @@ export const IntermediateGuideView: React.FC<IntermediateGuideViewProps> = ({ on
           </div>
           <h1 className="text-3xl font-black text-[#134E4A]">Intermediate English Speaking Guide</h1>
           <p className="text-xs sm:text-sm text-teal-800/80 font-medium mt-1">
-            Bridge the gap from basic communication to natural fluency, expanded vocabulary, and IELTS Band 7+ prep.
+            Bridge the gap from basic communication to natural fluency, expanded vocabulary, and advanced spontaneous speaking.
           </p>
         </div>
 

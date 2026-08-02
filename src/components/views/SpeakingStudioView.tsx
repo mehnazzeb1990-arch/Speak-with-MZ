@@ -5,6 +5,7 @@ import { elevenLabsService } from '../../services/elevenlabs';
 import { DEFAULT_AI_VOICE } from '../../config/voice';
 import { ConversationMessage, GrammarCorrection, AIPersona, SpeakingScenario } from '../../types';
 import { AI_PERSONAS, SPEAKING_SCENARIOS } from '../../data/mockData';
+import { buildTopicEngineContext, topicConversationEngine } from '../../services/topicEngine';
 import { AdBanner } from '../common/AdBanner';
 import { 
   Mic, 
@@ -43,17 +44,50 @@ interface SpeakingStudioViewProps {
 }
 
 export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNavigate }) => {
-  const { user, activePersona, setActivePersona, activeScenario, setActiveScenario, addVocabWord, recordSpeakingMinutes } = useAuth();
+  const { 
+    user, 
+    activePersona, 
+    setActivePersona, 
+    activeScenario, 
+    setActiveScenario, 
+    activeTopic,
+    setActiveTopic,
+    activeActivity,
+    setActiveActivity,
+    addVocabWord, 
+    recordSpeakingMinutes,
+    saveTopicSession
+  } = useAuth();
   
-  const [messages, setMessages] = useState<ConversationMessage[]>([
-    {
-      id: 'msg_welcome',
-      sender: 'ai',
-      text: `Hello ${user?.name ? user.name.split(' ')[0] : 'there'}! I'm ${activePersona.name}. Welcome to our "${activeScenario.title}" speaking practice session. What would you like to share or ask first?`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      fluencyScore: 92,
-    },
-  ]);
+  const currentTopicOrScenario = activeTopic || activeScenario;
+
+  const [topicContext, setTopicContext] = useState(() =>
+    buildTopicEngineContext(currentTopicOrScenario, user?.level || 'Intermediate')
+  );
+
+  useEffect(() => {
+    setTopicContext(buildTopicEngineContext(activeTopic || activeScenario, user?.level || 'Intermediate'));
+  }, [activeTopic, activeScenario, user?.level]);
+
+  const [messages, setMessages] = useState<ConversationMessage[]>(() => {
+    const context = buildTopicEngineContext(activeTopic || activeScenario, user?.level || 'Intermediate');
+    const greeting = topicConversationEngine.generateInitialGreeting(
+      context.title,
+      context.category,
+      context.level,
+      user?.name || 'Learner',
+      activeActivity || 'Free Conversation'
+    );
+    return [
+      {
+        id: 'msg_welcome',
+        sender: 'ai',
+        text: greeting,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        fluencyScore: 92,
+      },
+    ];
+  });
 
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -169,10 +203,12 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
         body: JSON.stringify({
           message: finalMsg.trim(),
           persona: activePersona.name,
-          level: user?.level || 'Intermediate',
-          scenario: activeScenario.title,
+          level: topicContext.level,
+          scenario: topicContext.title,
           conversationHistory: messages,
           userName: user?.name || 'Learner',
+          topicContext,
+          activityType: activeActivity || 'Free Conversation',
         }),
       });
 
@@ -841,8 +877,8 @@ export const SpeakingStudioView: React.FC<SpeakingStudioViewProps> = ({ onNaviga
                         <span className="text-[10px] text-emerald-700 font-bold">Minimal "um / like"</span>
                       </div>
                       <div className="p-4 rounded-2xl bg-[#E6F1EF] border border-[#CBDED9] space-y-1 text-center">
-                        <span className="text-[10px] font-extrabold uppercase text-teal-800/70">IELTS Fluency Band</span>
-                        <div className="text-2xl font-black text-[#F59E0B]">7.5 / 9.0</div>
+                        <span className="text-[10px] font-extrabold uppercase text-teal-800/70">Fluency Rating</span>
+                        <div className="text-2xl font-black text-[#F59E0B]">Advanced</div>
                         <span className="text-[10px] text-teal-800/80 font-medium">Good Spontaneous Flow</span>
                       </div>
                     </div>

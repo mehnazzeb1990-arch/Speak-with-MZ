@@ -17,7 +17,8 @@ import {
   Clock, 
   ChevronRight,
   Flame,
-  ArrowRight
+  ArrowRight,
+  Mic
 } from 'lucide-react';
 
 interface CurriculumHubViewProps {
@@ -25,7 +26,7 @@ interface CurriculumHubViewProps {
 }
 
 export const CurriculumHubView: React.FC<CurriculumHubViewProps> = ({ onNavigate }) => {
-  const { user } = useAuth();
+  const { user, setActiveTopic } = useAuth();
 
   const [activeLevelTab, setActiveLevelTab] = useState<EnglishLevel>('Beginner');
   const [selectedTopic, setSelectedTopic] = useState<CurriculumTopic | null>(null);
@@ -248,13 +249,21 @@ export const CurriculumHubView: React.FC<CurriculumHubViewProps> = ({ onNavigate
               </div>
 
               <div className="pt-3 border-t border-[#CBDED9] flex items-center justify-between text-xs font-extrabold text-[#0F766E]">
-                <span className="flex items-center space-x-1 text-teal-800/60 text-[11px]">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{topic.estimatedMinutes} mins</span>
-                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTopic(topic);
+                    onNavigate('speaking');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-[#0F766E] hover:bg-[#0D9488] text-white text-[11px] font-bold flex items-center space-x-1 transition-all shadow-sm cursor-pointer"
+                  title="Start real-time AI speaking practice for this topic"
+                >
+                  <Mic className="w-3.5 h-3.5 text-white animate-pulse" />
+                  <span>Start Speaking</span>
+                </button>
 
-                <span className="flex items-center space-x-1 group-hover:translate-x-1 transition-transform">
-                  <span>Start Lesson</span>
+                <span className="flex items-center space-x-1 group-hover:translate-x-1 transition-transform text-[#0F766E]">
+                  <span>Explore Topic</span>
                   <ArrowRight className="w-4 h-4" />
                 </span>
               </div>

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { CurriculumTopic } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { TopicSpeakingEngine } from '../common/TopicSpeakingEngine';
 import { audioService } from '../../services/audio';
 import { elevenLabsService } from '../../services/elevenlabs';
 import { DEFAULT_AI_VOICE } from '../../config/voice';
@@ -39,8 +41,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   onNavigate,
   isUserPremium,
 }) => {
+  const { setActiveTopic } = useAuth();
+  const [showLiveSpeakingStudio, setShowLiveSpeakingStudio] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    'vocab' | 'conversation' | 'pronunciation' | 'picture' | 'exercises' | 'roleplay' | 'advanced'
+    'speaking' | 'vocab' | 'conversation' | 'pronunciation' | 'picture' | 'exercises' | 'roleplay' | 'advanced'
   >('vocab');
 
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
@@ -171,6 +175,31 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           {topic.description}
         </p>
 
+        {/* Action Button: Start Real-time AI Topic Speaking Practice */}
+        <div className="pt-2 flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => {
+              setActiveTopic(topic);
+              setShowLiveSpeakingStudio(true);
+            }}
+            className="px-6 py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs sm:text-sm flex items-center space-x-2 transition-all shadow-lg hover:shadow-teal-500/20 cursor-pointer"
+          >
+            <Mic className="w-4 h-4 text-white animate-pulse" />
+            <span>🎤 Start AI Topic Practice with Coach MZ</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTopic(topic);
+              onNavigate('speaking');
+            }}
+            className="px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-2 transition-all cursor-pointer border border-slate-700"
+          >
+            <Sparkles className="w-4 h-4 text-sky-400" />
+            <span>Open in Full Studio</span>
+          </button>
+        </div>
+
         {isLocked && (
           <div className="mt-4 p-4 rounded-2xl bg-amber-500/20 border border-amber-400/30 text-amber-200 text-xs flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -187,9 +216,34 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
       </div>
 
+      {/* Embedded Live AI Topic Engine Modal/Drawer */}
+      {showLiveSpeakingStudio && (
+        <div className="my-6 space-y-3">
+          <div className="flex items-center justify-between px-2">
+            <span className="text-xs font-extrabold text-teal-600 dark:text-teal-400 uppercase tracking-widest flex items-center space-x-1.5">
+              <Sparkles className="w-4 h-4 text-teal-500 animate-spin" />
+              <span>Active AI Topic Speaking Engine</span>
+            </span>
+            <button
+              onClick={() => setShowLiveSpeakingStudio(false)}
+              className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800"
+            >
+              Close AI Studio
+            </button>
+          </div>
+          <TopicSpeakingEngine
+            topic={topic}
+            onClose={() => setShowLiveSpeakingStudio(false)}
+            onNavigate={onNavigate}
+            embedded={true}
+          />
+        </div>
+      )}
+
       {/* Main Interactive Navigation Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
         {[
+          { id: 'speaking', label: '🎤 AI Topic Practice' },
           { id: 'vocab', label: '📚 Vocabulary & Idioms' },
           { id: 'conversation', label: '💬 Dialogue' },
           { id: 'pronunciation', label: '🗣️ Pronunciation' },
@@ -211,6 +265,17 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </button>
         ))}
       </div>
+
+      {/* TAB 0: AI TOPIC PRACTICE */}
+      {activeTab === 'speaking' && (
+        <div className="space-y-4">
+          <TopicSpeakingEngine
+            topic={topic}
+            onNavigate={onNavigate}
+            embedded={true}
+          />
+        </div>
+      )}
 
       {/* TAB 1: VOCABULARY & IDIOMS */}
       {activeTab === 'vocab' && (

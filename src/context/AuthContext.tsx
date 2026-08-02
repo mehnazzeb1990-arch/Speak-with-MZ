@@ -8,9 +8,10 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../lib/firebase';
-import { UserProfile, SubscriptionPlan, VocabularyItem, AIPersona, SpeakingScenario, NotificationItem, PaymentRecord, Currency } from '../types';
+import { UserProfile, SubscriptionPlan, VocabularyItem, AIPersona, SpeakingScenario, NotificationItem, PaymentRecord, Currency, CurriculumTopic } from '../types';
 import { INITIAL_USER, INITIAL_VOCABULARY, AI_PERSONAS, SPEAKING_SCENARIOS, INITIAL_NOTIFICATIONS } from '../data/mockData';
 import { INITIAL_PAYMENTS } from '../data/mockPayments';
+import { SpeakingActivityType } from '../services/topicEngine';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -41,6 +42,25 @@ interface AuthContextType {
   setActivePersona: (persona: AIPersona) => void;
   activeScenario: SpeakingScenario;
   setActiveScenario: (scenario: SpeakingScenario) => void;
+  activeTopic: CurriculumTopic | SpeakingScenario | null;
+  setActiveTopic: (topic: CurriculumTopic | SpeakingScenario | null) => void;
+  activeActivity: SpeakingActivityType;
+  setActiveActivity: (activity: SpeakingActivityType) => void;
+  completedTopicIds: string[];
+  markTopicCompleted: (topicId: string) => Promise<void>;
+  saveTopicSession: (session: {
+    topicTitle: string;
+    topicId: string;
+    activityType: SpeakingActivityType;
+    durationSeconds: number;
+    messagesCount: number;
+    fluencyScore: number;
+    grammarScore: number;
+    vocabScore: number;
+    pronunciationScore: number;
+    confidenceScore: number;
+    newVocabLearned: string[];
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -92,6 +112,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [activePersona, setActivePersona] = useState<AIPersona>(AI_PERSONAS[0]);
   const [activeScenario, setActiveScenario] = useState<SpeakingScenario>(SPEAKING_SCENARIOS[0]);
+  const [activeTopic, setActiveTopic] = useState<CurriculumTopic | SpeakingScenario | null>(null);
+  const [activeActivity, setActiveActivity] = useState<SpeakingActivityType>('Free Conversation');
+
+  const [completedTopicIds, setCompletedTopicIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('speak_mz_completed_topics');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  const markTopicCompleted = async (topicId: string) => {
+    if (!topicId) return;
+    setCompletedTopicIds((prev) => {
+      if (prev.includes(topicId)) return prev;
+      const updated = [...prev, topicId];
+      localStorage.setItem('speak_mz_completed_topics', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const saveTopicSession = async (session: {
+    topicTitle: string;
+    topicId: string;
+    activityType: SpeakingActivityType;
+    durationSeconds: number;
+    messagesCount: number;
+    fluencyScore: number;
+    grammarScore: number;
+    vocabScore: number;
+    pronunciationScore: number;
+    confidenceScore: number;
+    newVocabLearned: string[];
+  }) => {
+    const minutes = Math.max(1, Math.round(session.durationSeconds / 60));
+    recordSpeakingMinutes(minutes);
+    if (session.topicId) {
+      await markTopicCompleted(session.topicId);
+    }
+
+    if (user) {
+      const updatedProfile: Partial<UserProfile> = {
+        conversationsCompleted: (user.conversationsCompleted || 0) + 1,
+        vocabularyLearned: (user.vocabularyLearned || 0) + (session.newVocabLearned?.length || 0),
+      };
+      await updateProfile(updatedProfile);
+
+      // Save to Firestore if Firebase user is authenticated
+      if (auth.currentUser) {
+        try {
+          const sessionDocRef = doc(db, 'users', auth.currentUser.uid, 'conversations', `sess_${Date.now()}`);
+          await setDoc(sessionDocRef, {
+            ...session,
+            timestamp: new Date().toISOString(),
+            userId: auth.currentUser.uid,
+          });
+        } catch (e) {
+          console.warn('Firestore session save notice:', e);
+        }
+      }
+    }
+  };
 
   // Subscribe to Firebase Auth state
   useEffect(() => {
@@ -431,6 +517,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setActivePersona,
         activeScenario,
         setActiveScenario,
+        activeTopic,
+        setActiveTopic,
+        activeActivity,
+        setActiveActivity,
+        completedTopicIds,
+        markTopicCompleted,
+        saveTopicSession,
       }}
     >
       {children}

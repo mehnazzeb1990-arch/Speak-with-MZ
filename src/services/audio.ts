@@ -2,6 +2,34 @@ import { elevenLabsService } from './elevenlabs';
 import { DEFAULT_AI_VOICE } from '../config/voice';
 
 /**
+ * Sanitizes input text for clean TTS speech generation, stripping IPA notations, 
+ * intonation symbols, and hyphens in syllable stress representations (e.g., pho-to-GRAPH-ic -> photographic).
+ */
+export function sanitizeTextForSpeech(text: string): string {
+  if (!text) return '';
+  let cleaned = text;
+
+  // Remove IPA slashed blocks like /.../
+  cleaned = cleaned.replace(/\/[^/]+\//g, '');
+
+  // Remove pitch/intonation symbols
+  cleaned = cleaned.replace(/[↗↘→]/g, ' ');
+
+  // If text is hyphenated syllable notation like "PHO-to-graph" or "pho-to-GRAPH-ic", convert hyphens to clean words
+  if (/^[A-Za-z]+(-[A-Za-z]+)+$/.test(cleaned.trim())) {
+    cleaned = cleaned.replace(/-/g, '');
+  }
+
+  // Remove surrounding quotes
+  cleaned = cleaned.replace(/^["'“]|["'”]$/g, '');
+
+  // Collapse spaces
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+  return cleaned || text;
+}
+
+/**
  * Integrated Speech Synthesis and Speech Recognition Service for Speak with MZ.
  * Combines ElevenLabs Conversational Voice API with Browser Speech Recognition & Web Speech API fallback.
  */
@@ -24,13 +52,16 @@ class AudioService {
     const volume = options.volume !== undefined ? options.volume : 1.0;
     const rate = options.rate || 1.0;
 
+    // Sanitize text for accurate speech synthesis (removes hyphens, IPA slashes, arrows)
+    const cleanSpeechText = sanitizeTextForSpeech(text);
+
     // Stop ongoing speech
     this.stopSpeaking();
 
     // Try ElevenLabs Neural Speech synthesis first if specified or available
     if (options.useElevenLabs !== false) {
       const success = await elevenLabsService.speakText(
-        text,
+        cleanSpeechText,
         options.voiceId || elevenLabsService.getVoiceId() || DEFAULT_AI_VOICE.voice,
         volume,
         rate
@@ -50,18 +81,16 @@ class AudioService {
 
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(cleanSpeechText);
       utterance.rate = rate;
       utterance.volume = Math.max(0, Math.min(1, volume));
-      utterance.pitch = options.pitch || (options.gender === 'female' ? 1.05 : 0.95);
+      utterance.pitch = options.pitch || 1.05;
 
       const voices = window.speechSynthesis.getVoices();
       const englishVoices = voices.filter((v) => v.lang.startsWith('en'));
       
       let selectedVoice = englishVoices.find((v) => 
-        options.gender === 'female' 
-          ? v.name.toLowerCase().includes('female') || v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Victoria') || v.name.includes('Google US English')
-          : v.name.toLowerCase().includes('male') || v.name.includes('Daniel') || v.name.includes('Alex')
+        v.name.toLowerCase().includes('female') || v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Victoria') || v.name.includes('Google US English') || v.name.includes('Zira')
       );
 
       if (!selectedVoice && englishVoices.length > 0) {

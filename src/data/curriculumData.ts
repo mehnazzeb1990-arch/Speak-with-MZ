@@ -374,9 +374,9 @@ const INTERMEDIATE_SAMPLE_TOPICS: CurriculumTopic[] = [
         conPoints: ['Causes video fatigue and privacy concerns', 'Favors high-bandwidth internet connections over remote equity']
       },
       conversation: [
-        { speaker: 'Alex (Business Coach)', text: 'Welcome to Intermediate Topic 1! Today we evaluate cultural communication styles in multinational teams. Have you ever worked with international colleagues?' },
+        { speaker: 'Coach MZ (AI Partner)', text: 'Welcome to Intermediate Topic 1! Today we evaluate cultural communication styles in multinational teams. Have you ever worked with international colleagues?' },
         { speaker: 'Learner', text: 'Yes, I work daily with team members from Europe and North America. Sometimes feedback styles differ greatly.' },
-        { speaker: 'Alex (Business Coach)', text: 'Precisely. Direct feedback can sound harsh to indirect communicators, while indirect feedback might be missed by direct speakers. How do you handle that balance?' }
+        { speaker: 'Coach MZ (AI Partner)', text: 'Precisely. Direct feedback can sound harsh to indirect communicators, while indirect feedback might be missed by direct speakers. How do you handle that balance?' }
       ],
       pronunciationSentences: [
         'Diplomatic phrasing helps navigate cultural ambiguity smoothly.',
@@ -583,9 +583,9 @@ const ADVANCED_SAMPLE_TOPICS: CurriculumTopic[] = [
         ]
       },
       conversation: [
-        { speaker: 'David (Exam & Academic Evaluator)', text: 'Welcome to Advanced Topic 1. Today we examine the ethical discourse surrounding Generative AI. How would you articulate the core paradigm shift occurring in synthetic media?' },
+        { speaker: 'Coach MZ (AI Partner)', text: 'Welcome to Advanced Topic 1. Today we examine the ethical discourse surrounding Generative AI. How would you articulate the core paradigm shift occurring in synthetic media?' },
         { speaker: 'Learner', text: 'The paradigm shift stems from moving from passive computational tools to proactive creative agents capable of synthesizing human-level discourse.' },
-        { speaker: 'David (Exam & Academic Evaluator)', text: 'Exceptional usage of "paradigm shift" and "discourse"! Now let’s analyze whether current governance frameworks are ahead of the curve or lagging behind.' }
+        { speaker: 'Coach MZ (AI Partner)', text: 'Exceptional usage of "paradigm shift" and "discourse"! Now let’s analyze whether current governance frameworks are ahead of the curve or lagging behind.' }
       ],
       pronunciationSentences: [
         'The juxtaposition of algorithmic power and ethical responsibility demands scholarly discourse.',
@@ -661,9 +661,9 @@ export const ADVANCED_TOPICS: CurriculumTopic[] = Array.from({ length: 100 }, (_
         ]
       },
       conversation: [
-        { speaker: 'Alex (Corporate Lead)', text: `Welcome to Advanced Topic ${topicNumber}. Today we delve into strategic frameworks in ${category}. What empirical trends have you observed?` },
+        { speaker: 'Coach MZ (AI Partner)', text: `Welcome to Advanced Topic ${topicNumber}. Today we delve into strategic frameworks in ${category}. What empirical trends have you observed?` },
         { speaker: 'Learner', text: 'Recent data suggests a systemic shift toward pragmatic, evidence-based decision making.' },
-        { speaker: 'Alex (Corporate Lead)', text: 'Magnificent synthesis of academic terms! Let’s proceed to your 2-minute executive presentation practice.' }
+        { speaker: 'Coach MZ (AI Partner)', text: 'Magnificent synthesis of academic terms! Let’s proceed to your 2-minute executive presentation practice.' }
       ],
       pronunciationSentences: [
         'Pragmatic solutions based on empirical data raise the bar for excellence.',

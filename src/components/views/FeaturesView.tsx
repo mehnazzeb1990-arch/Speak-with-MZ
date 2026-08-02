@@ -62,16 +62,16 @@ export const FeaturesView: React.FC<{ onNavigate: (v: string) => void }> = ({ on
       badge: 'Structured Learning',
       target: 'curriculum',
       btnText: 'Explore Topic Catalog',
-      description: 'Comprehensive topic library covering Job Interviews, Travel, IELTS Cue Cards, Business English, Social Chat, and Daily Life Scenarios.'
+      description: 'Comprehensive topic library covering Job Interviews, Travel, Topic Presentations, Business English, Social Chat, and Daily Life Scenarios.'
     },
     {
       id: 'analytics',
       icon: <BarChart3 className="w-6 h-6 text-[#0F766E]" />,
-      title: 'Fluency Analytics & IELTS Score',
+      title: 'Fluency Analytics & Speaking Progress',
       badge: 'Performance Tracker',
       target: 'progress',
       btnText: 'View Fluency Metrics',
-      description: 'Track speaking speed (WPM), pause frequency, vocabulary diversity index, confidence rating, and estimated IELTS speaking band progression.'
+      description: 'Track speaking speed (WPM), pause frequency, vocabulary diversity index, confidence rating, and estimated speaking fluency progression.'
     },
     {
       id: 'achievements',
@@ -98,7 +98,7 @@ export const FeaturesView: React.FC<{ onNavigate: (v: string) => void }> = ({ on
       badge: 'Stripe & Regional',
       target: 'pricing',
       btnText: 'View Membership Plans',
-      description: 'Seamless Stripe checkout supporting Visa, Mastercard, 1Link, EasyPaisa, and JazzCash with a 14-day 100% money-back guarantee.'
+      description: 'Secure online checkout supporting Visa, Mastercard, Debit Cards, and Credit Cards in USD & PKR with a 14-day 100% money-back guarantee.'
     }
   ];
 

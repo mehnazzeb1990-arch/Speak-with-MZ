@@ -23,8 +23,8 @@ export const FAQsView: React.FC = () => {
       a: 'Absolutely. You can upgrade, downgrade, or cancel your subscription at any time directly from your Account Settings.'
     },
     {
-      q: 'Is this an IELTS test preparation app?',
-      a: 'Speak with MZ is designed for everyday real-world communication, job interviews, and conversational fluency. Coach MZ also provides dedicated IELTS speaking practice and formal discourse feedback.'
+      q: 'What kind of speaking practice does Speak with MZ offer?',
+      a: 'Speak with MZ is designed for everyday real-world communication, job interviews, topic discussions, and conversational fluency for learners of all levels. Coach MZ provides instant feedback on grammar, pronunciation, fluency, and vocabulary.'
     }
   ];
 

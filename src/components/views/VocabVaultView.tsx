@@ -121,7 +121,7 @@ export const VocabVaultView: React.FC<VocabVaultViewProps> = ({ onNavigate }) =>
   }, [savedVocabList, shuffledVocab, searchTerm, selectedLevel, selectedCategory, personalFilter, learnedIds, reviewLaterIds]);
 
   // Categories list
-  const categories = ['All', 'IELTS', 'Daily Conversation', 'Business English', 'Academic English', 'Travel', 'Technology'];
+  const categories = ['All', 'Fluency Practice', 'Daily Conversation', 'Business English', 'Academic English', 'Travel', 'Technology'];
 
   // Handlers
   const handlePlayAudio = (word: string) => {
@@ -309,7 +309,7 @@ export const VocabVaultView: React.FC<VocabVaultViewProps> = ({ onNavigate }) =>
             <Award className="w-4 h-4 text-[#F59E0B]" />
           </div>
           <div className="text-2xl font-black text-[#134E4A]">Level 3</div>
-          <div className="text-[11px] text-teal-800/70 font-medium">IELTS & Business Ready</div>
+          <div className="text-[11px] text-teal-800/70 font-medium">Advanced & Business Ready</div>
         </div>
       </div>
 
@@ -323,7 +323,7 @@ export const VocabVaultView: React.FC<VocabVaultViewProps> = ({ onNavigate }) =>
             <span className="text-xs font-black uppercase tracking-wider text-teal-200">Word of the Day • {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
           </div>
           <span className="px-3 py-1 rounded-full bg-[#14B8A6]/30 text-teal-100 text-[10px] font-black uppercase border border-[#14B8A6]/30">
-            IELTS 8.0 & Executive Ready
+            Fluency & Executive Ready
           </span>
         </div>
 

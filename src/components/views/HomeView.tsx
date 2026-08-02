@@ -59,7 +59,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             </div>
 
             <p className="text-sm sm:text-base text-teal-900/80 font-medium max-w-2xl leading-relaxed">
-              Practice English naturally with Coach MZ—your AI-powered speaking partner designed to help you improve fluency, pronunciation, vocabulary, grammar, confidence, IELTS speaking performance, interview skills, and real-world communication through personalized conversations and intelligent feedback.
+              Practice English naturally with Coach MZ—your AI-powered speaking partner designed to help you improve fluency, pronunciation, vocabulary, grammar, confidence, interview skills, and real-world communication through personalized conversations and intelligent feedback.
             </p>
 
             <div className="pt-2">
@@ -140,8 +140,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
               <p className="text-xs text-teal-800/80">Command higher international salaries and unlock global remote positions.</p>
             </div>
             <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] space-y-1 group-hover:bg-teal-200/50 transition-colors">
-              <h4 className="font-extrabold text-sm text-[#134E4A]">🎓 Exam Mastery</h4>
-              <p className="text-xs text-teal-800/80">Ace IELTS, TOEFL, and Duolingo English Monologue & Part 2 Cue Cards.</p>
+              <h4 className="font-extrabold text-sm text-[#134E4A]">🎓 Fluency & Expression</h4>
+              <p className="text-xs text-teal-800/80">Master spontaneous storytelling, public speaking, and presentation skills.</p>
             </div>
             <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] space-y-1 group-hover:bg-teal-200/50 transition-colors">
               <h4 className="font-extrabold text-sm text-[#134E4A]">🌟 Social & Travel Confidence</h4>
@@ -275,8 +275,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
               <p className="text-[11px] text-teal-800/80 mt-1">Replace formal verbs with natural conversational alternatives.</p>
             </div>
             <div className="p-3.5 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] group-hover:bg-teal-200/50 transition-colors">
-              <h5 className="font-bold text-xs text-[#134E4A]">3. IELTS Band 7+ Prep</h5>
-              <p className="text-[11px] text-teal-800/80 mt-1">Structure Part 2 monologues with smooth connectors.</p>
+              <h5 className="font-bold text-xs text-[#134E4A]">3. Spontaneous Speaking</h5>
+              <p className="text-[11px] text-teal-800/80 mt-1">Structure topic presentations with smooth transitional phrases.</p>
             </div>
           </div>
 
@@ -430,7 +430,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
           <div className="space-y-2">
             <h3 className="text-xl font-black text-white">Choose Your Roleplay Scenario & Start Practicing</h3>
             <p className="text-xs text-teal-200/90 font-medium">
-              Practice 400+ real-world topics, job interviews, free discussions, and IELTS exam monologues with Coach MZ.
+              Practice 400+ real-world topics, job interviews, free discussions, and spontaneous speaking drills with Coach MZ.
             </p>
           </div>
 
@@ -460,10 +460,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
               className="p-4 rounded-2xl bg-[#0F766E]/50 border border-[#14B8A6]/30 hover:bg-[#0F766E] hover:scale-105 transition-all cursor-pointer space-y-1 group"
             >
               <h4 className="font-bold text-sm text-white flex items-center justify-between">
-                <span>🎓 IELTS Part 2 Monologue</span>
+                <span>🎤 Topic Presentation</span>
                 <ArrowRight className="w-3.5 h-3.5 text-[#14B8A6] group-hover:translate-x-1 transition-transform" />
               </h4>
-              <p className="text-[11px] text-teal-200/80">Timed 2-min exam simulator.</p>
+              <p className="text-[11px] text-teal-200/80">Spontaneous 2-min speaking drill.</p>
             </div>
             <div 
               onClick={() => onNavigate('speaking')}

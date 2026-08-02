@@ -470,7 +470,7 @@ function getInstantSupportResponse(query: string): string {
   }
 
   if (q.includes('plan') || q.includes('subscription') || q.includes('price') || q.includes('upgrade') || q.includes('cost') || q.includes('refund') || q.includes('pay') || q.includes('card')) {
-    return `💳 **Subscription Plans & Billing:**\n\n1. **Free Beginner Plan:** Enjoy 200 free speaking minutes every single month.\n2. **Intermediate Plan ($15/mo or PKR Rs. 3,900/mo):** Unlimited AI speaking time, full grammar reports, and all curriculum modules.\n3. **Advanced Plan ($29/mo or PKR Rs. 7,900/mo):** Master class coaching, 1-on-1 interview practice, and certificate.\n4. **14-Day 100% Refund Policy:** Full money-back guarantee with 1-click refund from your Subscription settings. We accept Visa, Mastercard, 1Link/PayPak, JazzCash & EasyPaisa.`;
+    return `💳 **Subscription Plans & Billing:**\n\n1. **Free Beginner Plan:** Enjoy 200 free speaking minutes every single month.\n2. **Intermediate Plan ($15/mo or PKR Rs. 3,900/mo):** Unlimited AI speaking time, full grammar reports, and all curriculum modules.\n3. **Advanced Plan ($29/mo or PKR Rs. 7,900/mo):** Master class coaching, 1-on-1 interview practice, and certificate.\n4. **14-Day 100% Refund Policy:** Full money-back guarantee with 1-click refund from your Subscription settings. We accept Visa, Mastercard, Debit Cards & Credit Cards.`;
   }
 
   if (q.includes('mic') || q.includes('microphone') || q.includes('sound') || q.includes('audio') || q.includes('bug') || q.includes('error') || q.includes('technical')) {
