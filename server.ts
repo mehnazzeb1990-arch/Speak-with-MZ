@@ -512,84 +512,58 @@ User category filter: "${category}".
   }
 });
 
-// Stripe Create Checkout Session Endpoint
-app.post('/api/stripe/create-checkout-session', async (req, res) => {
+// Paddle Create Checkout Transaction
+app.post('/api/paddle/create-checkout', async (req, res) => {
   try {
-    const { plan = 'intermediate_premium', currency = 'USD', userEmail, userId } = req.body;
-    const stripe = getStripeClient();
+    const { email = '' } = req.body;
 
-    if (stripe) {
-      const isPKR = currency === 'PKR';
-      const unitAmount = isPKR ? 280000 : 1000; // Rs. 2,800 or $10.00
-      const currencyCode = isPKR ? 'pkr' : 'usd';
-      const planName = plan === 'advanced_premium' ? 'Advanced Premium Plan' : 'Intermediate Premium Plan';
+    const apiKey = process.env.PADDLE_API_KEY;
+    const priceId = process.env.PADDLE_PRICE_ID;
 
-      const origin = req.headers.origin || 'http://localhost:3000';
+    if (!apiKey || !priceId) {
+      return res.status(500).json({
+        error: 'Paddle credentials missing'
+      });
+    }
 
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: currencyCode,
-              product_data: {
-                name: `Speak with MZ - ${planName}`,
-                description: '24/7 Unlimited AI English Partner, Live Grammar Doctor, Pronunciation Analysis & Voice Synthesis',
-              },
-              unit_amount: unitAmount,
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'subscription',
-        success_url: `${origin}/?payment=success&plan=${plan}`,
-        cancel_url: `${origin}/?payment=cancelled`,
-        customer_email: userEmail || undefined,
-        metadata: {
-          userId: userId || 'guest',
-          plan,
+    const paddleResponse = await fetch(
+      'https://sandbox-api.paddle.com/transactions',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
         },
-      });
+        body: JSON.stringify({
+          items: [
+            {
+              price_id: priceId,
+              quantity: 1
+            }
+          ],
+          customer: email
+            ? {
+                email
+              }
+            : undefined
+        })
+      }
+    );
 
-      res.json({ url: session.url, sessionId: session.id });
-      return;
-    }
+    const data = await paddleResponse.json();
 
-    // Fallback response when STRIPE_SECRET_KEY is not provided (allows seamless interactive modal payment)
-    res.json({
-      url: null,
-      simulated: true,
-      message: 'Stripe secret key not provided in environment; using PCI-compliant modal payment fallback.'
+    res.json(data);
+
+  } catch (err: any) {
+    console.error('Paddle checkout error:', err);
+
+    res.status(500).json({
+      error: err.message
     });
-  } catch (err: any) {
-    console.error('Stripe create checkout error:', err);
-    res.status(500).json({ error: err.message, simulated: true });
   }
 });
 
-// Stripe Verify Session Endpoint
-app.get('/api/stripe/verify-session', async (req, res) => {
-  try {
-    const { session_id } = req.query;
-    const stripe = getStripeClient();
 
-    if (stripe && typeof session_id === 'string') {
-      const session = await stripe.checkout.sessions.retrieve(session_id);
-      res.json({
-        status: session.payment_status,
-        customer_email: session.customer_details?.email,
-        plan: session.metadata?.plan || 'intermediate_premium',
-      });
-      return;
-    }
-
-    res.json({ status: 'paid', simulated: true });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Boot server
 // Boot server
 
 async function startServer() {
@@ -597,27 +571,36 @@ async function startServer() {
     const vite = await import('vite');
 
     const viteDevServer = await vite.createServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true
+      },
       appType: 'spa',
     });
 
     app.use(viteDevServer.middlewares);
 
     app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Speak with MZ server running on http://0.0.0.0:${PORT}`);
+      console.log(
+        `🚀 Speak with MZ server running on http://0.0.0.0:${PORT}`
+      );
     });
+
   } else {
     const distPath = path.join(process.cwd(), 'dist');
 
     app.use(express.static(distPath));
 
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      res.sendFile(
+        path.join(distPath, 'index.html')
+      );
     });
   }
 }
 
+
 export default app;
+
 
 if (process.env.NODE_ENV !== 'production') {
   startServer();
