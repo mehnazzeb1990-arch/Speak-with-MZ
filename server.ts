@@ -590,25 +590,35 @@ app.get('/api/stripe/verify-session', async (req, res) => {
 });
 
 // Boot server
+// Boot server
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await import('vite');
+
     const viteDevServer = await vite.createServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
+
     app.use(viteDevServer.middlewares);
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Speak with MZ server running on http://0.0.0.0:${PORT}`);
+    });
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+
     app.use(express.static(distPath));
+
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Speak with MZ server running on http://0.0.0.0:${PORT}`);
-  });
 }
 
-startServer();
+export default app;
+
+if (process.env.NODE_ENV !== 'production') {
+  startServer();
+}
