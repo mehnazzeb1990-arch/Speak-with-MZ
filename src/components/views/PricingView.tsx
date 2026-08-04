@@ -616,8 +616,8 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
         </>
       )}
 
-      {/* STRIPE CHECKOUT MODAL */}
-      <StripeCheckoutModal
+     {/* PADDLE CHECKOUT MODAL */}
+<PaddleCheckoutModal
         plan={selectedPlan || 'intermediate_premium'}
         isOpen={Boolean(selectedPlan)}
         onClose={() => setSelectedPlan(null)}
