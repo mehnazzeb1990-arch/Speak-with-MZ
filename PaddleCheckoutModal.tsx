@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { SubscriptionPlan, PaymentMethodType } from '../../types';
+import { SubscriptionPlan } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { paymentService } from '../../services/paymentService';
-import { X, Check, ShieldCheck, CreditCard, Lock, Sparkles } from 'lucide-react';
+import { X, Check, Sparkles } from 'lucide-react';
 
-interface StripeCheckoutModalProps {
+interface PaddleCheckoutModalProps {
   plan: SubscriptionPlan;
   isOpen: boolean;
   onClose: () => void;
