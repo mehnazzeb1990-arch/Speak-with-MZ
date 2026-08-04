@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SubscriptionPlan } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { StripeCheckoutModal } from '../common/StripeCheckoutModal';
+import { PaddleCheckoutModal } from '../common/PaddleCheckoutModal';
 import { RefundPolicyModal } from '../common/RefundPolicyModal';
 import { SupportChatModal } from '../common/SupportChatModal';
 import { 
