@@ -448,11 +448,11 @@ export const SubscriptionView: React.FC = () => {
       )}
 
       {/* Common Modals */}
-      <StripeCheckoutModal
-        plan={selectedPlanToUpgrade}
-        isOpen={checkoutModalOpen}
-        onClose={() => setCheckoutModalOpen(false)}
-      />
+     <PaddleCheckoutModal
+  plan={selectedPlanToUpgrade}
+  isOpen={checkoutModalOpen}
+  onClose={() => setCheckoutModalOpen(false)}
+/>
 
       <ReceiptModal
         payment={receiptPayment}
