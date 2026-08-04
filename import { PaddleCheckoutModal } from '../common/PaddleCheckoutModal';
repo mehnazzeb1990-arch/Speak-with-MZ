@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { StripeCheckoutModal } from '../common/StripeCheckoutModal';
+import { PaddleCheckoutModal } from '../common/PaddleCheckoutModal';
 import { ReceiptModal } from '../common/ReceiptModal';
 import { RefundPolicyModal } from '../common/RefundPolicyModal';
-import { 
   Crown, 
   CheckCircle, 
   CreditCard, 
