@@ -11,7 +11,7 @@ interface PaddleCheckoutModalProps {
   onCancel?: () => void;
 }
 
-export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({ plan, isOpen, onClose, onSuccess, onCancel }) => {
+export const PaddleCheckoutModal = CheckoutModal: React.FC<PaddleCheckoutModalProps> = ({ plan, isOpen, onClose, onSuccess, onCancel }) => {
   const { upgradePlan, currency, setCurrency } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>('Visa');
