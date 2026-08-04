@@ -3,24 +3,27 @@ import { useAuth } from '../../context/AuthContext';
 import { PaddleCheckoutModal } from '../common/PaddleCheckoutModal';
 import { ReceiptModal } from '../common/ReceiptModal';
 import { RefundPolicyModal } from '../common/RefundPolicyModal';
-  Crown, 
-  CheckCircle, 
-  CreditCard, 
-  ShieldCheck, 
-  Printer, 
-  RefreshCw, 
-  AlertTriangle, 
-  X, 
-  HelpCircle, 
-  Lock, 
-  UserCheck, 
-  Search, 
-  Filter, 
-  DollarSign, 
+
+import {
+  Crown,
+  CheckCircle,
+  CreditCard,
+  ShieldCheck,
+  Printer,
+  RefreshCw,
+  AlertTriangle,
+  X,
+  HelpCircle,
+  Lock,
+  UserCheck,
+  Search,
+  Filter,
+  DollarSign,
   Settings,
   Sparkles,
-  ArrowRight
+  ArrowRight,
 } from 'lucide-react';
+
 import { SubscriptionPlan, PaymentRecord } from '../../types';
 
 export const SubscriptionView: React.FC = () => {
