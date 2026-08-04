@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { SubscriptionPlan } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { X, Check, Sparkles } from 'lucide-react';
+import { ShieldCheck, CreditCard, Lock } from 'lucide-react';
+import { paymentService } from '../../services/paymentService';
+import { PaymentMethodType } from '../../types';
 
 interface PaddleCheckoutModalProps {
   plan: SubscriptionPlan;
