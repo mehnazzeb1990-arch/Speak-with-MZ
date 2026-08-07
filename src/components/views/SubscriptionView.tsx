@@ -31,8 +31,8 @@ import {
 } from 'lucide-react';
 
 import { PaddleCheckoutModal } from '../common/PaddleCheckoutModal';
-import ReceiptModal from '../common/ReceiptModal';
-import RefundPolicyModal from '../common/RefundPolicyModal';
+import { ReceiptModal } from '../common/ReceiptModal';
+import { RefundPolicyModal } from '../common/RefundPolicyModal';
 import { useAuth } from '../../context/AuthContext';
 import { PaymentRecord } from '../../types';
 
