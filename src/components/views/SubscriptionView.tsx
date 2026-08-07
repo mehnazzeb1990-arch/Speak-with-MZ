@@ -54,10 +54,10 @@ export default function SubscriptionView() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isRefundPolicyOpen, setIsRefundPolicyOpen] = useState(false);
-  const [selectedReceipt, setSelectedReceipt] = useState<PaymentTransaction | null>(null);
-
+  const [selectedReceipt, setSelectedReceipt] = useState<PaymentRecord | null>(null);
+  
   // Admin Refund Action State
-  const [refundConfirmPayment, setRefundConfirmPayment] = useState<PaymentTransaction | null>(null);
+const [refundConfirmPayment, setRefundConfirmPayment] = useState<PaymentRecord | null>(null);
 
   // Admin Filters
   const [adminSearch, setAdminSearch] = useState('');
