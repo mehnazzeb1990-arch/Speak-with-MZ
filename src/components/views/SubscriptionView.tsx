@@ -33,7 +33,8 @@ import {
 import PaddleCheckoutModal from '../common/PaddleCheckoutModal';
 import ReceiptModal from '../common/ReceiptModal';
 import RefundPolicyModal from '../common/RefundPolicyModal';
-import { useAuth, PaymentTransaction } from '../../hooks/useAuth';
+import { useAuth } from '../../context/AuthContext';
+import { PaymentRecord } from '../../types';
 
 export default function SubscriptionView() {
   const {
