@@ -36,7 +36,7 @@ import { RefundPolicyModal } from '../common/RefundPolicyModal';
 import { useAuth } from '../../context/AuthContext';
 import { PaymentRecord } from '../../types';
 
-export default function SubscriptionView() {
+export function SubscriptionView() {
   const {
     user,
     currency,
