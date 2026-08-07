@@ -30,7 +30,7 @@ import {
   Globe
 } from 'lucide-react';
 
-import PaddleCheckoutModal from '../common/PaddleCheckoutModal';
+import { PaddleCheckoutModal } from '../common/PaddleCheckoutModal';
 import ReceiptModal from '../common/ReceiptModal';
 import RefundPolicyModal from '../common/RefundPolicyModal';
 import { useAuth } from '../../context/AuthContext';
