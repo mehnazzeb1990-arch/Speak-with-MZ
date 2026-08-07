@@ -1,0 +1,469 @@
+import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { StripeCheckoutModal } from '../common/StripeCheckoutModal';
+import { PaddleCheckoutModal } from '../common/PaddleCheckoutModal';
+import { ReceiptModal } from '../common/ReceiptModal';
+import { RefundPolicyModal } from '../common/RefundPolicyModal';
+import { 
+  Crown, 
+  CheckCircle, 
+  CreditCard, 
+~  ShieldCheck, 
+~  Printer, 
+~  RefreshCw, 
+~  AlertTriangle, 
+~  X, 
+~  HelpCircle, 
+~  Lock, 
+~  UserCheck, 
+~  Search, 
+~  Filter, 
+~  DollarSign, 
+~  Settings,
+~  Sparkles,
+~  ArrowRight
+~} from 'lucide-react';
+~import { SubscriptionPlan, PaymentRecord } from '../../types';
+~
+~export const SubscriptionView: React.FC = () => {
+~  const { 
+~    user, 
+~    currency, 
+~    setCurrency, 
+~    payments, 
+~    cancelSubscription, 
+~    toggleAutoRenew, 
+~    upgradePlan,
+~    adminRefundPayment 
+~  } = useAuth();
+~
+~  const [activeTab, setActiveTab] = useState<'my_billing' | 'admin_management'>('my_billing');
+~  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+~  const [selectedPlanToUpgrade, setSelectedPlanToUpgrade] = useState<SubscriptionPlan>('intermediate_premium');
+~  
+~  const [receiptPayment, setReceiptPayment] = useState<PaymentRecord | null>(null);
+~  const [refundModalOpen, setRefundModalOpen] = useState(false);
+~  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+~
+~  // Admin section filters
+~  const [adminSearch, setAdminSearch] = useState('');
+~  const [adminStatusFilter, setAdminStatusFilter] = useState<string>('all');
+~
+~  const isPKR = currency === 'PKR';
+~
+~  // My payments
+~  const myPayments = payments.filter((p) => p.userEmail === user?.email || p.userId === user?.id);
+~
+~  // Admin stats calculation
+~  const totalRevenueUSD = payments.filter((p) => p.status === 'paid').reduce((acc, curr) => acc + curr.amountUSD, 0);
+~  const totalRevenuePKR = payments.filter((p) => p.status === 'paid').reduce((acc, curr) => acc + curr.amountPKR, 0);
+~  const totalRefundedCount = payments.filter((p) => p.status === 'refunded').length;
+~
+~  const filteredAdminPayments = payments.filter((p) => {
+~    const matchesSearch = p.userName.toLowerCase().includes(adminSearch.toLowerCase()) || 
+~                          p.userEmail.toLowerCase().includes(adminSearch.toLowerCase()) ||
+~                          p.invoiceId.toLowerCase().includes(adminSearch.toLowerCase());
+~    const matchesStatus = adminStatusFilter === 'all' || p.status === adminStatusFilter;
+~    return matchesSearch && matchesStatus;
+~  });
+~
+~  const handleCancelClick = () => {
+~    cancelSubscription();
+~    setCancelConfirmOpen(false);
+~  };
+~
+~  return (
+~    <div id="subscription-page" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+~      
+~      {/* Top Banner & Title */}
+~      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+~        <div>
+~          <div className="flex items-center space-x-2">
+~            <div className="p-2.5 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400">
+~              <Crown className="w-6 h-6" />
+~            </div>
+~            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Subscriptions & Global Payments</h1>
+~          </div>
+~          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+~            Manage your plan, auto-renewal, payment history, receipts, or administrative transactions.
+~          </p>
+~        </div>
+~
+~        {/* Currency Switcher & View Tabs */}
+~        <div className="flex items-center space-x-3">
+~          <div className="inline-flex items-center p-1 rounded-2xl bg-slate-200 dark:bg-slate-800 text-xs font-bold border border-slate-300 dark:border-slate-700">
+~            <button
+~              onClick={() => setCurrency('USD')}
+~              className={`px-3 py-1.5 rounded-xl transition-all ${currency === 'USD' ? 'bg-[#0F766E] text-white shadow-sm' : 'text-teal-900/80 font-medium'}`}
+~            >
+~              USD ($)
+~            </button>
+~            <button
+~              onClick={() => setCurrency('PKR')}
+~              className={`px-3 py-1.5 rounded-xl transition-all ${currency === 'PKR' ? 'bg-[#0F766E] text-white shadow-sm' : 'text-teal-900/80 font-medium'}`}
+~            >
+~              PKR (Rs.)
+~            </button>
+~          </div>
+~
+~          <div className="inline-flex items-center p-1 rounded-2xl bg-slate-200 dark:bg-slate-800 text-xs font-bold border border-slate-300 dark:border-slate-700">
+~            <button
+~              onClick={() => setActiveTab('my_billing')}
+~              className={`px-3.5 py-1.5 rounded-xl transition-all ${activeTab === 'my_billing' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
+~            >
+~              My Billing
+~            </button>
+~            <button
+~              onClick={() => setActiveTab('admin_management')}
+~              className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center space-x-1 ${activeTab === 'admin_management' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
+~            >
+~              <Settings className="w-3.5 h-3.5" />
+~              <span>Admin Portal</span>
+~            </button>
+~          </div>
+~        </div>
+~      </div>
+~
+~      {activeTab === 'my_billing' ? (
+~        <div className="space-y-8">
+~          {/* Current Subscription Card */}
+~          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+~            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+~              <div>
+~                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Current Subscription Plan</span>
+~                <div className="flex items-center space-x-3 mt-1">
+~                  <h3 className="text-3xl font-black text-slate-900 dark:text-white capitalize">
+~                    {user?.subscriptionPlan.replace('_', ' ')}
+~                  </h3>
+~                  <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${
+~                    user?.subscriptionStatus === 'active'
+~                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+~                      : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+~                  }`}>
+~                    {user?.subscriptionStatus || 'Active'}
+~                  </span>
+~                </div>
+~                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+~                  {user?.subscriptionPlan === 'free'
+~                    ? '200 Beginner Topics, Basic Feedback, Ads Placement enabled.'
+~                    : `Full access to structured curriculum, 24/7 unlimited AI coaching, and ad-free environment. Next billing: ${user?.renewalDate || 'August 30, 2026'}.`}
+~                </p>
+~              </div>
+~
+~              <div className="flex flex-wrap items-center gap-2">
+~                {user?.subscriptionPlan !== 'free' && (
+~                  <button
+~                    onClick={toggleAutoRenew}
+~                    className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-colors"
+~                  >
+~                    Auto-Renew: {user?.autoRenew !== false ? 'ENABLED' : 'DISABLED'}
+~                  </button>
+~                )}
+~
+~                <button
+~                  onClick={() => {
+~                    setSelectedPlanToUpgrade('intermediate_premium');
+~                    setCheckoutModalOpen(true);
+~                  }}
+~                  className="px-5 py-2.5 rounded-2xl bg-ai-gradient hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-teal-900/20 transition-all flex items-center space-x-1.5 cursor-pointer"
+~                >
+~                  <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+~                  <span>{user?.subscriptionPlan === 'free' ? 'Upgrade Plan ($10/mo)' : 'Change / Upgrade Plan'}</span>
+~                </button>
+~              </div>
+~            </div>
+~
+~            {/* Plan Details Grid */}
+~            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
+~              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
+~                <span className="text-slate-400 font-semibold block mb-1">Billing Amount</span>
+~                <span className="font-extrabold text-slate-900 dark:text-white text-base">
+~                  {user?.subscriptionPlan === 'free' 
+~                    ? (isPKR ? 'PKR 0' : '$0') 
+~                    : (isPKR ? 'Rs. 2,800 / month' : '$10.00 / month')}
+~                </span>
+~              </div>
+~
+~              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
+~                <span className="text-slate-400 font-semibold block mb-1">PCI Payment Protection</span>
+~                <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
+~                  <ShieldCheck className="w-4 h-4" />
+~                  <span>Card Tokenized & Secure</span>
+~                </span>
+~              </div>
+~
+~              <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] flex items-center justify-between">
+~                <div>
+~                  <span className="text-[#134E4A] font-semibold block text-xs">14-Day Refund Guarantee</span>
+~                  <span className="text-[11px] text-teal-800/70 font-medium">Full 100% money-back guarantee</span>
+~                </div>
+~                <button
+~                  onClick={() => setRefundModalOpen(true)}
+~                  className="px-3 py-1.5 rounded-xl bg-[#0F766E] text-white font-bold text-[11px] hover:bg-[#115E59] transition-colors shadow-sm cursor-pointer"
+~                >
+~                  Refund Policy
+~                </button>
+~              </div>
+~            </div>
+~
+~            {/* Cancel Subscription Footer link */}
+~            {user?.subscriptionPlan !== 'free' && user?.subscriptionStatus === 'active' && (
+~              <div className="pt-2 flex justify-end">
+~                <button
+~                  onClick={() => setCancelConfirmOpen(true)}
+~                  className="text-xs text-rose-500 hover:text-rose-600 font-bold underline"
+~                >
+~                  Cancel Subscription
+~                </button>
+~              </div>
+~            )}
+~          </div>
+~
+~          {/* Payment History Table Section */}
+~          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+~            <div className="flex items-center justify-between">
+~              <div>
+~                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Payment History & Receipts</h3>
+~                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+~                  View your itemized invoices, receipts, and payment logs.
+~                </p>
+~              </div>
+~            </div>
+~
+~            {myPayments.length > 0 ? (
+~              <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+~                <table className="w-full text-xs text-left text-slate-700 dark:text-slate-300">
+~                  <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-800">
+~                    <tr>
+~                      <th className="p-3.5">Invoice ID</th>
+~                      <th className="p-3.5">Date</th>
+~                      <th className="p-3.5">Plan</th>
+~                      <th className="p-3.5">Amount</th>
+~                      <th className="p-3.5">Payment Method</th>
+~                      <th className="p-3.5">Status</th>
+~                      <th className="p-3.5 text-right">Receipt</th>
+~                    </tr>
+~                  </thead>
+~                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+~                    {myPayments.map((payment) => (
+~                      <tr key={payment.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+~                        <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white">
+~                          {payment.invoiceId}
+~                        </td>
+~                        <td className="p-3.5 text-slate-500">{payment.date}</td>
+~                        <td className="p-3.5 font-semibold text-slate-900 dark:text-white">{payment.planName}</td>
+~                        <td className="p-3.5 font-bold font-mono">
+~                          {isPKR ? `PKR ${payment.amountPKR.toLocaleString()}` : `$${payment.amountUSD.toFixed(2)}`}
+~                        </td>
+~                        <td className="p-3.5 text-slate-600 dark:text-slate-400">
+~                          {payment.paymentMethod} {payment.cardLast4 ? `(•• ${payment.cardLast4})` : ''}
+~                        </td>
+~                        <td className="p-3.5">
+~                          <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold capitalize ${
+~                            payment.status === 'paid'
+~                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+~                              : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+~                          }`}>
+~                            {payment.status}
+~                          </span>
+~                        </td>
+~                        <td className="p-3.5 text-right">
+~                          <button
+~                            onClick={() => setReceiptPayment(payment)}
+~                            className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-900 dark:text-white font-bold text-[11px] inline-flex items-center space-x-1"
+~                          >
+~                            <Printer className="w-3.5 h-3.5" />
+~                            <span>Receipt</span>
+~                          </button>
+~                        </td>
+~                      </tr>
+~                    ))}
+~                  </tbody>
+~                </table>
+~              </div>
+~            ) : (
+~              <div className="p-8 text-center text-xs text-slate-400 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
+~                No billing history records found for your account.
+~              </div>
+~            )}
+~          </div>
+~        </div>
+~      ) : (
+~        /* Admin Management Section */
+~        <div className="space-y-8">
+~          
+~          {/* Admin Metrics Bar */}
+~          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+~            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+~              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Revenue Collected</span>
+~              <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
+~                {isPKR ? `PKR ${totalRevenuePKR.toLocaleString()}` : `$${totalRevenueUSD.toFixed(2)} USD`}
+~              </div>
+~              <span className="text-[11px] text-emerald-600 font-semibold block">PCI-compliant settlement</span>
+~            </div>
+~
+~            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+~              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Transactions</span>
+~              <div className="text-2xl font-black text-slate-900 dark:text-white">
+~                {payments.length} Payments
+~              </div>
+~              <span className="text-[11px] text-slate-500 block">Visa, Mastercard, Debit & Credit Cards</span>
+~            </div>
+~
+~            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+~              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Refunded Transactions</span>
+~              <div className="text-2xl font-black text-slate-900 dark:text-white">
+~                {totalRefundedCount} Refunds
+~              </div>
+~              <span className="text-[11px] text-amber-600 font-semibold block">14-day policy processed</span>
+~            </div>
+~          </div>
+~
+~          {/* Admin Transaction Management Ledger */}
+~          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+~            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+~              <div>
+~                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Admin Transaction Ledger</h3>
+~                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+~                  Search user subscriptions, view card types, issue manual refunds, or extend access.
+~                </p>
+~              </div>
+~
+~              {/* Search & Status Filters */}
+~              <div className="flex flex-wrap items-center gap-3">
+~                <div className="relative">
+~                  <input
+~                    type="text"
+~                    placeholder="Search name, email, invoice..."
+~                    value={adminSearch}
+~                    onChange={(e) => setAdminSearch(e.target.value)}
+~                    className="pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs outline-none focus:ring-2 focus:ring-indigo-500"
+~                  />
+~                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+~                </div>
+~
+~                <select
+~                  value={adminStatusFilter}
+~                  onChange={(e) => setAdminStatusFilter(e.target.value)}
+~                  className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold"
+~                >
+~                  <option value="all">All Statuses</option>
+~                  <option value="paid">Paid</option>
+~                  <option value="refunded">Refunded</option>
+~                </select>
+~              </div>
+~            </div>
+~
+~            {/* Table */}
+~            <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+~              <table className="w-full text-xs text-left text-slate-700 dark:text-slate-300">
+~                <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-800">
+~                  <tr>
+~                    <th className="p-3.5">Invoice</th>
+~                    <th className="p-3.5">Customer</th>
+~                    <th className="p-3.5">Plan</th>
+~                    <th className="p-3.5">Method</th>
+~                    <th className="p-3.5">Amount</th>
+~                    <th className="p-3.5">Status</th>
+~                    <th className="p-3.5 text-right">Admin Actions</th>
+~                  </tr>
+~                </thead>
+~                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+~                  {filteredAdminPayments.map((p) => (
+~                    <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+~                      <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white">{p.invoiceId}</td>
+~                      <td className="p-3.5">
+~                        <p className="font-bold text-slate-900 dark:text-white">{p.userName}</p>
+~                        <p className="text-[11px] text-slate-500">{p.userEmail}</p>
+~                      </td>
+~                      <td className="p-3.5 font-medium">{p.planName}</td>
+~                      <td className="p-3.5 text-slate-500">{p.paymentMethod}</td>
+~                      <td className="p-3.5 font-bold font-mono">
+~                        {isPKR ? `PKR ${p.amountPKR}` : `$${p.amountUSD}`}
+~                      </td>
+~                      <td className="p-3.5">
+~                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold capitalize ${
+~                          p.status === 'paid'
+~                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+~                            : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+~                        }`}>
+~                          {p.status}
+~                        </span>
+~                      </td>
+~                      <td className="p-3.5 text-right space-x-2">
+~                        <button
+~                          onClick={() => setReceiptPayment(p)}
+~                          className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 text-[11px] font-bold"
+~                        >
+~                          Invoice
+~                        </button>
+~                        {p.status === 'paid' && (
+~                          <button
+~                            onClick={() => adminRefundPayment(p.id)}
+~                            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold"
+~                          >
+~                            Process Refund
+~                          </button>
+~                        )}
+~                      </td>
+~                    </tr>
+~                  ))}
+~                </tbody>
+~              </table>
+~            </div>
+~
+~          </div>
+~
+~        </div>
+~      )}
+~
+~      {/* Confirmation Modal for Subscription Cancellation */}
+~      {cancelConfirmOpen && (
+~        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#042F2C]/60 backdrop-blur-sm">
+~          <div className="w-full max-w-md bg-[#E6F1EF] rounded-3xl p-6 shadow-2xl border border-[#CBDED9] space-y-4">
+~            <div className="flex items-center space-x-3 text-rose-600">
+~              <AlertTriangle className="w-6 h-6" />
+~              <h3 className="text-lg font-extrabold">Cancel Subscription?</h3>
+~            </div>
+~            <p className="text-xs text-[#134E4A] font-medium">
+~              Are you sure you want to cancel your Premium subscription? You will lose access to 200+ structured intermediate & advanced topics, 24/7 unlimited AI coaching, and ad-free experience at the end of your billing cycle.
+~            </p>
+~            <div className="flex items-center justify-end space-x-2 pt-2">
+~              <button
+~                onClick={() => setCancelConfirmOpen(false)}
+~                className="px-4 py-2 rounded-xl bg-[#DCEDE9] text-[#134E4A] font-bold text-xs border border-[#CBDED9] hover:bg-[#CBDED9] cursor-pointer"
+~              >
+~                Keep Subscription
+~              </button>
+~              <button
+~                onClick={handleCancelClick}
+~                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs"
+~              >
+~                Confirm Cancel
+~              </button>
+~            </div>
+~          </div>
+~        </div>
+~      )}
+~
+~      {/* Common Modals */}
+ <PaddleCheckoutModal
+  plan={selectedPlanToUpgrade}
+  isOpen={checkoutModalOpen}
+  onClose={() => setCheckoutModalOpen(false)}
+ />
+~
+~      <ReceiptModal
+~        payment={receiptPayment}
+~        isOpen={Boolean(receiptPayment)}
+~        onClose={() => setReceiptPayment(null)}
+~      />
+~
+~      <RefundPolicyModal
+~        isOpen={refundModalOpen}
+~        onClose={() => setRefundModalOpen(false)}
+~      />
+~
+~    </div>
+~  );
+~}; 
