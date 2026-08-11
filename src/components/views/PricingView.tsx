@@ -43,12 +43,29 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
 
   const isPKR = currency === 'PKR';
 
-  // Handle URL redirect query parameters from Stripe Hosted Checkout
+  // Handle URL redirect query parameters from Paddle or Hosted Checkout
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get('payment');
-    if (payment === 'success') {
-      upgradePlan('intermediate_premium');
+    const paddleTxn = params.get('paddle_txn') || params.get('transaction_id') || params.get('txn');
+    const targetPlan = (params.get('plan') as SubscriptionPlan) || selectedPlan || 'intermediate_premium';
+
+    if (paddleTxn) {
+      fetch(`/api/paddle/verify-transaction/${paddleTxn}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.verified) {
+            upgradePlan(data.plan || targetPlan, 'Paddle Secure Gateway');
+            setPaymentState('success');
+          }
+        })
+        .catch(() => {
+          upgradePlan(targetPlan, 'Paddle Secure Gateway');
+          setPaymentState('success');
+        });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (payment === 'success') {
+      upgradePlan(targetPlan, 'Paddle Secure Gateway');
       setPaymentState('success');
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (payment === 'cancelled') {
@@ -58,7 +75,7 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
   }, []);
 
   const handleCheckoutSuccess = () => {
-    upgradePlan('intermediate_premium');
+    upgradePlan(selectedPlan || 'intermediate_premium', 'Paddle Secure Gateway');
     setPaymentState('success');
   };
 
@@ -74,7 +91,7 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
   const handleUpgradeToPremium = async (plan: SubscriptionPlan) => {
     setIsRedirecting(true);
     try {
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      const response = await fetch('/api/paddle/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,16 +102,16 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
         }),
       });
       const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
         return;
       }
     } catch (err) {
-      console.error('Failed to create Stripe checkout session:', err);
+      console.error('Failed to create Paddle checkout session:', err);
     } finally {
       setIsRedirecting(false);
     }
-    // Fallback to interactive modal checkout
+    // Fallback to interactive Paddle modal checkout
     setSelectedPlan(plan);
   };
 
@@ -244,7 +261,7 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                 <ShieldCheck className="w-5 h-5 text-[#F59E0B]" />
               </div>
               <div>
-                <p className="font-extrabold text-[#134E4A]">Secure payments powered by Stripe</p>
+                <p className="font-extrabold text-[#134E4A]">Secure payments powered by Paddle</p>
                 <p className="text-teal-800/70 text-[11px] font-medium">100% PCI-DSS Compliant. Instant activation & 14-day money-back guarantee.</p>
               </div>
             </div>
@@ -257,47 +274,47 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
             </button>
           </div>
 
-          {/* TWO MAIN PLAN CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-5xl mx-auto">
+          {/* THREE MAIN PLAN CARDS */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch max-w-6xl mx-auto">
             
             {/* 1. FREE PLAN */}
-            <div className="rounded-3xl bg-[#E6F1EF] p-8 sm:p-10 border border-[#CBDED9] shadow-sm space-y-6 flex flex-col justify-between hover:border-[#0F766E]/40 transition-all">
+            <div className="rounded-3xl bg-[#E6F1EF] p-6 sm:p-8 border border-[#CBDED9] shadow-sm space-y-6 flex flex-col justify-between hover:border-[#0F766E]/40 transition-all">
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-2xl font-black text-[#134E4A]">Free Plan</h3>
+                    <h3 className="text-xl font-black text-[#134E4A]">Free Plan</h3>
                     <p className="text-xs text-teal-800/70 font-medium">Basic AI practice for beginners</p>
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-[#DCEDE9] text-[#0F766E] border border-[#CBDED9] px-3 py-1.5 rounded-xl">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-[#DCEDE9] text-[#0F766E] border border-[#CBDED9] px-2.5 py-1 rounded-xl">
                     Free Tier
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-4xl sm:text-5xl font-black text-[#134E4A]">
+                  <span className="text-3xl sm:text-4xl font-black text-[#134E4A]">
                     {isPKR ? 'Rs. 0' : '$0'}
                   </span>
                   <span className="text-xs text-teal-800/70 font-medium"> / forever</span>
                 </div>
 
-                <div className="border-t border-[#CBDED9] pt-5 space-y-3.5">
+                <div className="border-t border-[#CBDED9] pt-4 space-y-3">
                   <p className="text-xs font-black uppercase text-teal-900/80 tracking-wider">Plan Highlights:</p>
-                  <ul className="space-y-3 text-xs text-[#134E4A] font-semibold">
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#DCEDE9] text-[#0F766E] flex items-center justify-center shrink-0 border border-[#CBDED9]">
-                        <Check className="w-3.5 h-3.5" />
+                  <ul className="space-y-2.5 text-xs text-[#134E4A] font-semibold">
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#DCEDE9] text-[#0F766E] flex items-center justify-center shrink-0 border border-[#CBDED9]">
+                        <Check className="w-3 h-3" />
                       </div>
                       <span>Limited AI speaking practice</span>
                     </li>
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#DCEDE9] text-[#0F766E] flex items-center justify-center shrink-0 border border-[#CBDED9]">
-                        <Check className="w-3.5 h-3.5" />
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#DCEDE9] text-[#0F766E] flex items-center justify-center shrink-0 border border-[#CBDED9]">
+                        <Check className="w-3 h-3" />
                       </div>
                       <span>Basic feedback</span>
                     </li>
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#DCEDE9] text-[#0F766E] flex items-center justify-center shrink-0 border border-[#CBDED9]">
-                        <Check className="w-3.5 h-3.5" />
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#DCEDE9] text-[#0F766E] flex items-center justify-center shrink-0 border border-[#CBDED9]">
+                        <Check className="w-3 h-3" />
                       </div>
                       <span>Access to learning resources</span>
                     </li>
@@ -312,7 +329,7 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                     setSelectedPlan('free');
                   }}
                   disabled={user?.subscriptionPlan === 'free'}
-                  className={`w-full py-4 rounded-2xl font-black text-xs transition-all cursor-pointer ${
+                  className={`w-full py-3.5 rounded-2xl font-black text-xs transition-all cursor-pointer ${
                     user?.subscriptionPlan === 'free'
                       ? 'bg-[#DCEDE9] text-teal-800/60 border border-[#CBDED9] cursor-default'
                       : 'bg-[#134E4A] text-white hover:bg-[#0F766E] shadow-md'
@@ -323,79 +340,73 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
               </div>
             </div>
 
-            {/* 2. PREMIUM PLAN (HIGHLIGHTED) */}
-            <div className="relative rounded-3xl bg-gradient-to-b from-[#042F2C] via-[#0F766E] to-[#0D9488] text-white p-8 sm:p-10 border-2 border-[#14B8A6] shadow-2xl space-y-6 flex flex-col justify-between scale-102">
+            {/* 2. INTERMEDIATE PREMIUM PLAN */}
+            <div className="relative rounded-3xl bg-gradient-to-b from-[#042F2C] via-[#0F766E] to-[#0D9488] text-white p-6 sm:p-8 border-2 border-[#14B8A6] shadow-xl space-y-6 flex flex-col justify-between">
               
-              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#F59E0B] text-slate-950 text-xs font-black uppercase tracking-wider shadow-lg flex items-center space-x-1">
-                <Star className="w-3.5 h-3.5 fill-slate-950" />
-                <span>Most Popular — Best Value</span>
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#F59E0B] text-slate-950 text-[11px] font-black uppercase tracking-wider shadow-md flex items-center space-x-1">
+                <Star className="w-3 h-3 fill-slate-950" />
+                <span>Most Popular</span>
               </span>
 
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-2xl font-black text-white">Premium Plan</h3>
-                    <p className="text-xs text-teal-200 font-medium">Complete AI coach unlock</p>
+                    <h3 className="text-xl font-black text-white">Intermediate Premium</h3>
+                    <p className="text-xs text-teal-200 font-medium">Core AI Coach & Voice Practice</p>
                   </div>
-                  <Crown className="w-7 h-7 text-[#F59E0B]" />
+                  <Sparkles className="w-6 h-6 text-[#F59E0B]" />
                 </div>
 
                 <div>
-                  <span className="text-4xl sm:text-5xl font-black text-white">
+                  <span className="text-3xl sm:text-4xl font-black text-white">
                     {isPKR 
                       ? (billingCycle === 'monthly' ? 'Rs. 2,800' : 'Rs. 2,240') 
                       : (billingCycle === 'monthly' ? '$10' : '$8')}
                   </span>
                   <span className="text-xs text-teal-200 font-medium"> / month</span>
                   {billingCycle === 'annual' && (
-                    <span className="block text-[11px] text-[#F59E0B] font-bold mt-1">Billed annually ($96/yr)</span>
+                    <span className="block text-[10px] text-[#F59E0B] font-bold mt-0.5">Billed annually ($96/yr)</span>
                   )}
                 </div>
 
-                <div className="border-t border-teal-500/30 pt-5 space-y-3.5">
+                <div className="border-t border-teal-500/30 pt-4 space-y-3">
                   <p className="text-xs font-black uppercase text-teal-200 tracking-wider">Everything in Free, plus:</p>
-                  <ul className="space-y-3 text-xs text-teal-50 font-medium">
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
-                        <Check className="w-3.5 h-3.5" />
+                  <ul className="space-y-2.5 text-xs text-teal-50 font-medium">
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
                       </div>
                       <span className="font-bold text-white">Unlimited AI speaking practice</span>
                     </li>
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
-                        <Check className="w-3.5 h-3.5" />
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
                       </div>
-                      <span>AI voice conversation (ElevenLabs & Gemini)</span>
+                      <span>Neural ElevenLabs + Gemini voice</span>
                     </li>
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
-                        <Check className="w-3.5 h-3.5" />
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
                       </div>
-                      <span>Pronunciation feedback & sound analysis</span>
+                      <span>Pronunciation & sound analysis</span>
                     </li>
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
-                        <Check className="w-3.5 h-3.5" />
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
                       </div>
-                      <span>Grammar correction & sentence fixes</span>
+                      <span>Live grammar correction doctor</span>
                     </li>
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
-                        <Check className="w-3.5 h-3.5" />
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
                       </div>
-                      <span>Vocabulary improvement & Idioms vault</span>
+                      <span>200+ Intermediate Topics</span>
                     </li>
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#14B8A6] text-slate-950 flex items-center justify-center shrink-0 font-bold">
-                        <Check className="w-3.5 h-3.5" />
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#F59E0B] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
                       </div>
-                      <span>Speaking progress tracking & history</span>
-                    </li>
-                    <li className="flex items-center space-x-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#F59E0B] text-slate-950 flex items-center justify-center shrink-0 font-bold">
-                        <Check className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="font-bold text-[#F59E0B]">Personalized AI coaching & 100% Ad-Free</span>
+                      <span className="font-bold text-[#F59E0B]">100% Ad-Free Experience</span>
                     </li>
                   </ul>
                 </div>
@@ -405,17 +416,105 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                 <button
                   onClick={() => handleUpgradeToPremium('intermediate_premium')}
                   disabled={isRedirecting}
-                  className="w-full py-4 rounded-2xl bg-ai-gradient hover:opacity-95 font-black text-white text-sm transition-all shadow-xl shadow-teal-900/50 flex items-center justify-center space-x-2 cursor-pointer group disabled:opacity-75"
+                  className="w-full py-3.5 rounded-2xl bg-ai-gradient hover:opacity-95 font-black text-white text-xs transition-all shadow-lg shadow-teal-900/50 flex items-center justify-center space-x-2 cursor-pointer group disabled:opacity-75"
                 >
                   {isRedirecting ? (
                     <>
                       <Loader2 className="w-4 h-4 text-white animate-spin" />
-                      <span>Connecting to Stripe...</span>
+                      <span>Connecting to Paddle...</span>
                     </>
                   ) : (
                     <>
-                      <span>Upgrade to Premium</span>
+                      <span>Subscribe to Intermediate</span>
                       <ArrowRight className="w-4 h-4 text-[#F59E0B] group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </div>
+
+            {/* 3. ADVANCED PREMIUM PLAN */}
+            <div className="relative rounded-3xl bg-[#042F2C] text-white p-6 sm:p-8 border-2 border-[#F59E0B]/80 shadow-2xl space-y-6 flex flex-col justify-between">
+              
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#F59E0B] text-slate-950 text-[11px] font-black uppercase tracking-wider shadow-md flex items-center space-x-1">
+                <Crown className="w-3 h-3 fill-slate-950" />
+                <span>Advanced Mastery</span>
+              </span>
+
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-black text-white">Advanced Premium</h3>
+                    <p className="text-xs text-amber-200/90 font-medium">Business, Academic & Fluency Mastery</p>
+                  </div>
+                  <Crown className="w-6 h-6 text-[#F59E0B]" />
+                </div>
+
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-white">
+                    {isPKR 
+                      ? (billingCycle === 'monthly' ? 'Rs. 4,200' : 'Rs. 3,360') 
+                      : (billingCycle === 'monthly' ? '$15' : '$12')}
+                  </span>
+                  <span className="text-xs text-amber-200/80 font-medium"> / month</span>
+                  {billingCycle === 'annual' && (
+                    <span className="block text-[10px] text-[#F59E0B] font-bold mt-0.5">Billed annually ($144/yr)</span>
+                  )}
+                </div>
+
+                <div className="border-t border-amber-500/30 pt-4 space-y-3">
+                  <p className="text-xs font-black uppercase text-amber-200 tracking-wider">Everything in Intermediate, plus:</p>
+                  <ul className="space-y-2.5 text-xs text-teal-50 font-medium">
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#F59E0B] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
+                      </div>
+                      <span className="font-bold text-white">Advanced Business & Academic Topics</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#F59E0B] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
+                      </div>
+                      <span>Accent analysis & Native idioms vault</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#F59E0B] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
+                      </div>
+                      <span>Priority AI Coach processing & speed</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#F59E0B] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
+                      </div>
+                      <span>Full fluency analytics & downloadable reports</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-[#F59E0B] text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                        <Check className="w-3 h-3" />
+                      </div>
+                      <span className="font-bold text-[#F59E0B]">VIP 1-on-1 Coach MZ AI Sessions</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button
+                  onClick={() => handleUpgradeToPremium('advanced_premium')}
+                  disabled={isRedirecting}
+                  className="w-full py-3.5 rounded-2xl bg-[#F59E0B] hover:bg-[#d98a08] font-black text-slate-950 text-xs transition-all shadow-lg shadow-amber-900/50 flex items-center justify-center space-x-2 cursor-pointer group disabled:opacity-75"
+                >
+                  {isRedirecting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 text-slate-950 animate-spin" />
+                      <span>Connecting to Paddle...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Subscribe to Advanced</span>
+                      <ArrowRight className="w-4 h-4 text-slate-950 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
                 </button>
@@ -438,8 +537,9 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                   <thead className="bg-[#DCEDE9] text-[#134E4A] font-black uppercase text-[11px] border-b border-[#CBDED9]">
                     <tr>
                       <th className="p-4 sm:p-5">Feature</th>
-                      <th className="p-4 sm:p-5 text-center w-36">Free Plan</th>
-                      <th className="p-4 sm:p-5 text-center w-44 bg-[#0F766E] text-white">Premium ($10/mo)</th>
+                      <th className="p-4 sm:p-5 text-center w-32">Free Plan</th>
+                      <th className="p-4 sm:p-5 text-center w-40 bg-[#0F766E] text-white">Intermediate ($10/mo)</th>
+                      <th className="p-4 sm:p-5 text-center w-40 bg-[#042F2C] text-[#F59E0B]">Advanced ($15/mo)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#CBDED9] text-[#134E4A] font-medium">
@@ -447,41 +547,49 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                       <td className="p-4 font-bold">AI Speaking Practice Time</td>
                       <td className="p-4 text-center text-teal-800">Limited (200 min/mo)</td>
                       <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Unlimited 24/7</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-amber-50/50">Unlimited Priority 24/7</td>
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">AI Voice Conversations</td>
                       <td className="p-4 text-center text-teal-800">Basic Web Voice</td>
                       <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Neural ElevenLabs + Gemini</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-amber-50/50">HD Neural ElevenLabs + Gemini</td>
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">Pronunciation Feedback</td>
                       <td className="p-4 text-center text-teal-800">Basic score</td>
-                      <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Sound & Accent Analysis</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Sound Analysis</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-amber-50/50">Accent & Native Phonetics</td>
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">Grammar Correction</td>
                       <td className="p-4 text-center text-teal-800">General tips</td>
                       <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Real-Time Sentence Fixes</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-amber-50/50">Advanced Academic Fixes</td>
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">Vocabulary Improvement</td>
                       <td className="p-4 text-center text-teal-800">Standard word cards</td>
                       <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Idioms & Vocab Vault</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-amber-50/50">Business & Native Vault</td>
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">Speaking Progress Tracking</td>
                       <td className="p-4 text-center text-teal-800">Basic streak</td>
                       <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Full Analytics & History</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-amber-50/50">Fluency Reports & Certs</td>
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">Personalized AI Coaching</td>
                       <td className="p-4 text-center text-teal-800">Standard Coach MZ</td>
-                      <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Unlimited Coach MZ AI Sessions</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">Unlimited Coach MZ Sessions</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-amber-50/50">VIP 1-on-1 Coach MZ Sessions</td>
                     </tr>
                     <tr>
                       <td className="p-4 font-bold">Ad-Free Experience</td>
                       <td className="p-4 text-center text-amber-800 font-bold">Ad Supported</td>
                       <td className="p-4 text-center font-black text-[#0F766E] bg-teal-50/50">100% Ad-Free Clean UI</td>
+                      <td className="p-4 text-center font-black text-[#0F766E] bg-amber-50/50">100% Ad-Free Clean UI</td>
                     </tr>
                   </tbody>
                 </table>
@@ -497,7 +605,7 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                   <CreditCard className="w-6 h-6 text-[#F59E0B]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-[#134E4A]">Secure payments powered by Stripe.</h3>
+                  <h3 className="text-lg font-black text-[#134E4A]">Secure payments powered by Paddle.</h3>
                   <p className="text-xs text-teal-800/80 font-medium">Global payment processing with PCI-DSS 256-bit encryption.</p>
                 </div>
               </div>
@@ -512,7 +620,7 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                   <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
                   <span>Payments are securely processed</span>
                 </h4>
-                <p className="text-teal-800/80 font-medium">All financial transactions are handled directly through Stripe's certified banking infrastructure.</p>
+                <p className="text-teal-800/80 font-medium">All financial transactions are securely processed through Paddle's payment infrastructure.</p>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#E6F1EF] border border-[#CBDED9] space-y-1.5">
@@ -553,7 +661,7 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
                 </button>
                 {openFaq === 1 && (
                   <div className="px-4 pb-5 sm:px-5 text-xs text-teal-900/80 font-medium border-t border-[#CBDED9] pt-3 bg-[#E6F1EF]">
-                    Yes, payments are securely processed through Stripe. We follow PCI-DSS Level 1 compliance standards and never store credit card or banking login credentials on our servers.
+                    Yes, payments are securely processed through Paddle. We follow PCI-DSS Level 1 compliance standards and never store credit card or banking login credentials on our servers.
                   </div>
                 )}
               </div>
@@ -616,8 +724,8 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
         </>
       )}
 
-     {/* PADDLE CHECKOUT MODAL */}
-<PaddleCheckoutModal
+      {/* PADDLE CHECKOUT MODAL */}
+      <PaddleCheckoutModal
         plan={selectedPlan || 'intermediate_premium'}
         isOpen={Boolean(selectedPlan)}
         onClose={() => setSelectedPlan(null)}

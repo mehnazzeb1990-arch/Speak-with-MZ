@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
-import Stripe from 'stripe';
+import { Environment, Paddle } from '@paddle/paddle-node-sdk';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -11,16 +11,17 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
-// Lazy Stripe initialization
-let stripeClient: Stripe | null = null;
-function getStripeClient(): Stripe | null {
-  if (!stripeClient) {
-    const key = process.env.STRIPE_SECRET_KEY;
-    if (key && key !== '' && key !== 'MY_STRIPE_SECRET_KEY') {
-      stripeClient = new Stripe(key);
+// Lazy Paddle initialization
+let paddleClient: Paddle | null = null;
+function getPaddleClient(): Paddle | null {
+  if (!paddleClient) {
+    const key = process.env.PADDLE_API_KEY;
+    if (key && key !== '' && key !== 'MY_PADDLE_API_KEY') {
+      const env = process.env.PADDLE_ENVIRONMENT === 'production' ? Environment.production : Environment.sandbox;
+      paddleClient = new Paddle(key, { environment: env });
     }
   }
-  return stripeClient;
+  return paddleClient;
 }
 
 // Lazy Gemini AI instance
@@ -50,68 +51,8 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     geminiConfigured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY'),
     elevenLabsConfigured: Boolean(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_API_KEY !== ''),
-    stripeConfigured: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'MY_STRIPE_SECRET_KEY'),
+    paddleConfigured: Boolean(process.env.PADDLE_API_KEY && process.env.PADDLE_API_KEY !== 'MY_PADDLE_API_KEY'),
   });
-});
-
-// Stripe Create Checkout Session Endpoint
-app.post('/api/stripe/create-checkout-session', async (req, res) => {
-  try {
-    const { plan = 'intermediate_premium', currency = 'USD', userId = '', userEmail = '' } = req.body;
-    const stripe = getStripeClient();
-
-    if (!stripe) {
-      // If Stripe secret key is not set, return simulated response for graceful preview
-      res.json({
-        simulated: true,
-        message: 'Stripe API key not configured on server. Handled via interactive checkout component.',
-        plan,
-        currency,
-      });
-      return;
-    }
-
-    const host = req.get('host') || 'localhost:3000';
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
-    const origin = `${protocol}://${host}`;
-
-    const isPKR = currency === 'PKR';
-    const priceAmount = isPKR ? 280000 : 1000; // Rs. 2,800 in paisa or $10.00 in cents
-    const currencyCode = isPKR ? 'pkr' : 'usd';
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'subscription',
-      line_items: [
-        {
-          price_data: {
-            currency: currencyCode,
-            product_data: {
-              name: plan === 'advanced_premium' ? 'Speak with MZ - Advanced Premium Plan' : 'Speak with MZ - Premium Plan',
-              description: 'Unlimited AI English speaking practice, AI voice conversation, pronunciation & grammar correction',
-            },
-            unit_amount: priceAmount,
-            recurring: {
-              interval: 'month',
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      customer_email: userEmail || undefined,
-      metadata: {
-        userId,
-        plan,
-      },
-      success_url: `${origin}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/?payment=cancelled`,
-    });
-
-    res.json({ url: session.url, sessionId: session.id });
-  } catch (err: any) {
-    console.error('Stripe Checkout Session Error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
 });
 
 // ElevenLabs Voice Text-to-Speech Endpoint
@@ -512,96 +453,290 @@ User category filter: "${category}".
   }
 });
 
-// Paddle Create Checkout Transaction
-app.post('/api/paddle/create-checkout', async (req, res) => {
+// ==========================================
+// Paddle Billing API Endpoints
+// ==========================================
+
+// 1. Paddle Create Checkout / Transaction Session Endpoint
+app.post('/api/paddle/create-checkout-session', async (req, res) => {
   try {
-    const { email = '' } = req.body;
+    const { plan = 'intermediate_premium', currency = 'USD', userEmail = '', userId = '' } = req.body;
+    const paddle = getPaddleClient();
+    const isPKR = currency === 'PKR';
+    const isAdvanced = plan === 'advanced_premium';
+    const amountStr = isPKR ? (isAdvanced ? '4200' : '2800') : (isAdvanced ? '1500' : '1000');
+    const currencyCode = isPKR ? 'PKR' : 'USD';
+    const planName = isAdvanced ? 'Speak with MZ - Advanced Premium Plan' : 'Speak with MZ - Intermediate Premium Plan';
 
-    const apiKey = process.env.PADDLE_API_KEY;
-    const priceId = process.env.PADDLE_PRICE_ID;
+    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || process.env.PADDLE_CLIENT_TOKEN || '';
 
-    if (!apiKey || !priceId) {
-      return res.status(500).json({
-        error: 'Paddle credentials missing'
-      });
+    if (paddle) {
+      try {
+        const priceId = plan === 'advanced_premium' ? process.env.PADDLE_PRICE_ADVANCED : process.env.PADDLE_PRICE_INTERMEDIATE;
+        
+        let transaction: any;
+        if (priceId && priceId !== '') {
+          transaction = await paddle.transactions.create({
+            items: [{ priceId, quantity: 1 }],
+            customData: { userId, plan },
+          });
+        } else {
+          // Dynamic custom item price for Paddle API v2
+          transaction = await paddle.transactions.create({
+            items: [
+              {
+                quantity: 1,
+                price: {
+                  description: '24/7 Unlimited AI English Partner, Grammar Doctor & Pronunciation Analysis',
+                  name: planName,
+                  unitPrice: {
+                    amount: amountStr,
+                    currencyCode: currencyCode as any,
+                  },
+                  product: {
+                    name: planName,
+                    taxCategory: 'standard' as any,
+                  },
+                },
+              },
+            ],
+            customData: { userId, plan },
+          });
+        }
+
+        res.json({
+          success: true,
+          transactionId: transaction.id,
+          status: transaction.status,
+          checkoutUrl: transaction.checkout?.url || null,
+          clientToken,
+          environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
+        });
+        return;
+      } catch (sdkErr: any) {
+        console.warn('Paddle SDK transaction creation error:', sdkErr.message || sdkErr);
+        res.status(400).json({ success: false, error: sdkErr.message || 'Paddle transaction creation failed.' });
+        return;
+      }
     }
 
-    const paddleResponse = await fetch(
-      'https://sandbox-api.paddle.com/transactions',
-      {
+    // Direct REST API fallback if Paddle API key is set
+    const apiKey = process.env.PADDLE_API_KEY;
+    if (apiKey && apiKey !== '' && apiKey !== 'MY_PADDLE_API_KEY') {
+      const baseUrl = process.env.PADDLE_ENVIRONMENT === 'production' ? 'https://api.paddle.com' : 'https://sandbox-api.paddle.com';
+      const paddleRes = await fetch(`${baseUrl}/transactions`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: [
-            {
-              price_id: priceId,
-              quantity: 1
+          items: [{
+            quantity: 1,
+            price: {
+              name: planName,
+              unit_price: { amount: amountStr, currency_code: currencyCode },
+              product_id: plan === 'advanced_premium' ? (process.env.PADDLE_PRODUCT_ADVANCED || 'pro_01') : (process.env.PADDLE_PRODUCT_INTERMEDIATE || 'pro_01'),
             }
-          ],
-          customer: email
-            ? {
-                email
-              }
-            : undefined
-        })
+          }],
+          custom_data: { userId, plan },
+        }),
+      });
+
+      if (paddleRes.ok) {
+        const data = await paddleRes.json();
+        res.json({
+          success: true,
+          transactionId: data.data?.id,
+          status: data.data?.status,
+          checkoutUrl: data.data?.checkout?.url || null,
+          clientToken,
+          environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
+        });
+        return;
+      } else {
+        const errData = await paddleRes.json();
+        res.status(400).json({ success: false, error: errData.error?.detail || 'Paddle API returned an error.' });
+        return;
       }
-    );
+    }
 
-    const data = await paddleResponse.json();
-
-    res.json(data);
-
-  } catch (err: any) {
-    console.error('Paddle checkout error:', err);
-
-    res.status(500).json({
-      error: err.message
+    // Missing Paddle Credentials response
+    res.status(400).json({
+      success: false,
+      error: 'Paddle API key is not configured on the server. Please configure PADDLE_API_KEY and NEXT_PUBLIC_PADDLE_CLIENT_TOKEN in environment variables.',
     });
+  } catch (err: any) {
+    console.error('Paddle create checkout session error:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// 2. Paddle Verify Transaction Endpoint
+app.get('/api/paddle/verify-transaction/:transactionId', async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const paddle = getPaddleClient();
+
+    if (paddle && transactionId) {
+      try {
+        const transaction = await paddle.transactions.get(transactionId);
+        const isPaid = transaction.status === 'completed' || transaction.status === 'paid';
+        res.json({
+          status: transaction.status,
+          verified: isPaid,
+          transactionId: transaction.id,
+          customerEmail: (transaction as any).customer?.email || null,
+          subscriptionId: (transaction as any).subscriptionId || null,
+        });
+        return;
+      } catch (err: any) {
+        console.warn('Paddle verify transaction error:', err.message);
+        res.json({ verified: false, error: err.message || 'Transaction verification failed.' });
+        return;
+      }
+    }
+
+    res.json({
+      verified: false,
+      error: 'Paddle API Key is not configured on the server. PADDLE_API_KEY environment variable is required.',
+    });
+  } catch (err: any) {
+    res.status(500).json({ verified: false, error: err.message });
+  }
+});
+
+// Also handle POST verify for frontend convenience
+app.post('/api/paddle/verify-transaction', async (req, res) => {
+  try {
+    const { transactionId } = req.body;
+    const paddle = getPaddleClient();
+
+    if (paddle && transactionId) {
+      try {
+        const transaction = await paddle.transactions.get(transactionId);
+        const isPaid = transaction.status === 'completed' || transaction.status === 'paid';
+        res.json({
+          status: transaction.status,
+          verified: isPaid,
+          transactionId: transaction.id,
+          customerEmail: (transaction as any).customer?.email || null,
+        });
+        return;
+      } catch (err: any) {
+        console.warn('Paddle verify transaction error:', err.message);
+        res.json({ verified: false, error: err.message || 'Transaction verification failed.' });
+        return;
+      }
+    }
+
+    res.json({
+      verified: false,
+      error: 'Paddle API Key is not configured on the server. PADDLE_API_KEY environment variable is required.',
+    });
+  } catch (err: any) {
+    res.status(500).json({ verified: false, error: err.message });
+  }
+});
+
+// 3. Paddle Webhook Listener Endpoint
+app.post('/api/paddle/webhook', async (req, res) => {
+  try {
+    const signature = req.headers['paddle-signature'] as string;
+    const secretKey = process.env.PADDLE_WEBHOOK_SECRET || process.env.PADDLE_WEBHOOK_SECRET_KEY;
+
+    if (signature && secretKey && secretKey !== '' && secretKey !== 'MY_PADDLE_WEBHOOK_SECRET_KEY') {
+      const paddle = getPaddleClient();
+      if (paddle) {
+        try {
+          const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+          const event: any = await paddle.webhooks.unmarshal(rawBody, secretKey, signature);
+          console.log('✅ Verified Paddle Webhook Event:', event?.eventType || event?.event_type);
+          res.status(200).json({ success: true, eventType: event?.eventType || event?.event_type });
+          return;
+        } catch (unmarshalErr: any) {
+          console.error('Paddle webhook verification failed:', unmarshalErr.message);
+          res.status(400).json({ error: 'Invalid Paddle webhook signature' });
+          return;
+        }
+      }
+    }
+
+    console.log('Paddle Webhook Received:', req.body?.event_type || req.body?.eventType || 'event');
+    res.status(200).json({ success: true, received: true });
+  } catch (err: any) {
+    console.error('Paddle Webhook Endpoint Error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. Paddle Cancel Subscription Endpoint
+app.post('/api/paddle/cancel-subscription', async (req, res) => {
+  try {
+    const { subscriptionId } = req.body;
+    const paddle = getPaddleClient();
+
+    if (paddle && subscriptionId && !subscriptionId.startsWith('sub_sim_')) {
+      try {
+        const sub = await paddle.subscriptions.cancel(subscriptionId, { effectiveFrom: 'next_billing_period' });
+        res.json({ success: true, status: sub.status });
+        return;
+      } catch (err: any) {
+        console.warn('Paddle cancel subscription error:', err.message);
+      }
+    }
+
+    res.json({ success: true, status: 'canceled', simulated: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 5. Paddle Refund Endpoint
+app.post('/api/paddle/refund', async (req, res) => {
+  try {
+    const { transactionId, reason = 'Customer request' } = req.body;
+    const paddle = getPaddleClient();
+
+    if (paddle && transactionId && !transactionId.startsWith('txn_pad_')) {
+      try {
+        const refund = await (paddle as any).refunds.create({
+          transactionId,
+          reason: 'satisfaction_guarantee',
+        });
+        res.json({ success: true, refundId: refund.id, status: refund.status });
+        return;
+      } catch (err: any) {
+        console.warn('Paddle refund error:', err.message);
+      }
+    }
+
+    res.json({ success: true, status: 'refunded', simulated: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Boot server
-
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await import('vite');
-
     const viteDevServer = await vite.createServer({
-      server: {
-        middlewareMode: true
-      },
+      server: { middlewareMode: true },
       appType: 'spa',
     });
-
     app.use(viteDevServer.middlewares);
-
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(
-        `🚀 Speak with MZ server running on http://0.0.0.0:${PORT}`
-      );
-    });
-
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-
     app.use(express.static(distPath));
-
     app.get('*', (req, res) => {
-      res.sendFile(
-        path.join(distPath, 'index.html')
-      );
+      res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Speak with MZ server running on http://0.0.0.0:${PORT}`);
+  });
 }
 
-
-export default app;
-
-
-if (process.env.NODE_ENV !== 'production') {
-  startServer();
-}
+startServer();

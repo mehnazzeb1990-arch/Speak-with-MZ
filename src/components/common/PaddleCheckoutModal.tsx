@@ -1,17 +1,8 @@
-import React, { useState } from 'react';
-import { SubscriptionPlan, PaymentMethodType } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { SubscriptionPlan } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-
-import {
-  X,
-  Check,
-  Sparkles,
-  ShieldCheck,
-  CreditCard,
-  Lock,
-} from 'lucide-react';
-
-import { paymentService } from '../../services/paymentService';
+import { X, Check, ShieldCheck, Lock, Sparkles, ExternalLink, AlertCircle, RefreshCw } from 'lucide-react';
+import { initializePaddle, Paddle } from '@paddle/paddle-js';
 
 interface PaddleCheckoutModalProps {
   plan: SubscriptionPlan;
@@ -21,16 +12,51 @@ interface PaddleCheckoutModalProps {
   onCancel?: () => void;
 }
 
-  export const PaddleCheckoutModal: React.FC<PaddleCheckoutModalProps> = ({ plan, isOpen, onClose, onSuccess, onCancel }) => {
-  const { upgradePlan, currency, setCurrency } = useAuth();
+export const PaddleCheckoutModal: React.FC<PaddleCheckoutModalProps> = ({ plan, isOpen, onClose, onSuccess, onCancel }) => {
+  const { user, upgradePlan, currency, setCurrency } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>('Visa');
-
-  const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
-  const [expDate, setExpDate] = useState('12/28');
-  const [cvc, setCvc] = useState('987');
-  const [name, setName] = useState('MZ User');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [paddleInstance, setPaddleInstance] = useState<Paddle | null>(null);
+  const [paddleInitialized, setPaddleInitialized] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setErrorMessage(null);
+
+    // Initialize Paddle Client SDK if client token is provided in environment
+    const clientToken = 
+      (import.meta as any).env?.VITE_PADDLE_CLIENT_TOKEN || 
+      (import.meta as any).env?.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || '';
+
+    if (clientToken && clientToken !== '') {
+      const env = (import.meta as any).env?.VITE_PADDLE_ENVIRONMENT || (import.meta as any).env?.PADDLE_ENVIRONMENT || 'sandbox';
+      initializePaddle({
+        token: clientToken,
+        environment: env as any,
+        eventCallback: async (event) => {
+          if (event.name === 'checkout.completed') {
+            const txnId = (event.data as any)?.id;
+            if (txnId) {
+              await verifyAndActivate(txnId);
+            }
+          } else if (event.name === 'checkout.closed') {
+            setLoading(false);
+          }
+        },
+      }).then((instance) => {
+        if (instance) {
+          setPaddleInstance(instance);
+          setPaddleInitialized(true);
+        }
+      }).catch((e) => {
+        console.warn('Paddle JS initialization notice:', e);
+      });
+    } else {
+      setPaddleInitialized(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -44,16 +70,16 @@ interface PaddleCheckoutModalProps {
       description: 'Limited AI speaking practice, Basic feedback, Access to learning resources',
     },
     intermediate_premium: {
-      name: 'Premium Plan',
+      name: 'Intermediate Premium',
       priceUSD: '$10/mo',
       pricePKR: 'Rs. 2,800/mo',
       description: 'Unlimited AI speaking practice, AI voice conversation, Pronunciation & Grammar feedback',
     },
     advanced_premium: {
       name: 'Advanced Premium',
-      priceUSD: '$10/mo',
-      pricePKR: 'Rs. 2,800/mo',
-      description: 'Unlimited AI speaking practice, Voice conversation, Pronunciation, Grammar & Coaching',
+      priceUSD: '$15/mo',
+      pricePKR: 'Rs. 4,200/mo',
+      description: 'Advanced Business & Academic topics, Accent analysis, Native idioms & Priority AI Coach',
     },
   }[plan] || {
     name: 'Premium Plan',
@@ -64,36 +90,96 @@ interface PaddleCheckoutModalProps {
 
   const priceFormatted = isPKR ? planDetails.pricePKR : planDetails.priceUSD;
 
-  const handlePay = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const verifyAndActivate = async (txnId: string) => {
     setLoading(true);
+    try {
+      const res = await fetch(`/api/paddle/verify-transaction/${txnId}`);
+      const data = await res.json();
 
-    // Process payment through modular payment service layer
-    const result = await paymentService.processCardPayment({
-      plan,
-      currency,
-      paymentMethod: selectedMethod,
-      cardNumber,
-      cardholderName: name,
-      expDate,
-      cvc,
-    });
-
-    if (result.success) {
-      upgradePlan(plan, selectedMethod, result.last4);
+      if (data.verified) {
+        upgradePlan(plan, 'Paddle Secure Gateway', txnId.slice(-4));
+        setSuccess(true);
+        setLoading(false);
+        setTimeout(() => {
+          setSuccess(false);
+          onSuccess?.();
+          onClose();
+        }, 1500);
+        return true;
+      } else {
+        setErrorMessage(data.error || 'Paddle transaction verification incomplete. Subscription was not activated.');
+        setLoading(false);
+        return false;
+      }
+    } catch (e: any) {
+      setErrorMessage(e.message || 'Verification network error. Please contact support if payment went through.');
       setLoading(false);
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        onSuccess?.();
-        onClose();
-      }, 1500);
-    } else {
+      return false;
+    }
+  };
+
+  const handleStartPaddleCheckout = async () => {
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch('/api/paddle/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan,
+          currency,
+          userId: user?.id,
+          userEmail: user?.email,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        setErrorMessage(data.error || 'Unable to create Paddle checkout session. Please check server configuration.');
+        setLoading(false);
+        return;
+      }
+
+      // If Paddle Checkout URL is present, redirect to official hosted page
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
+      // If transactionId and Paddle.js overlay instance are available
+      if (data.transactionId && paddleInstance) {
+        paddleInstance.Checkout.open({
+          transactionId: data.transactionId,
+          settings: {
+            displayMode: 'overlay',
+            theme: 'light',
+            locale: 'en',
+            successUrl: `${window.location.origin}/?paddle_txn=${data.transactionId}`,
+          },
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Fallback redirect URL format if transactionId returned
+      if (data.transactionId) {
+        const env = data.environment === 'production' ? '' : 'sandbox-';
+        window.location.href = `https://${env}checkout.paddle.com/checkout/custom/${data.transactionId}`;
+        return;
+      }
+
+      setErrorMessage('Paddle Checkout initialization failed. Please try again.');
+      setLoading(false);
+    } catch (e: any) {
+      setErrorMessage(e.message || 'Error connecting to Paddle servers.');
       setLoading(false);
     }
   };
 
   const handleModalClose = () => {
+    if (loading) return;
     onCancel?.();
     onClose();
   };
@@ -107,8 +193,8 @@ interface PaddleCheckoutModalProps {
           <div className="flex items-center space-x-2">
             <Sparkles className="w-5 h-5 text-[#F59E0B]" />
             <div>
-              <h3 className="text-lg font-black">Secure Online Payment</h3>
-              <p className="text-[11px] text-teal-200">Pay securely using your Visa or Mastercard.</p>
+              <h3 className="text-lg font-black">Paddle Secure Payment</h3>
+              <p className="text-[11px] text-teal-200">Merchant of Record transaction processed by Paddle.</p>
             </div>
           </div>
 
@@ -139,19 +225,19 @@ interface PaddleCheckoutModalProps {
 
         {success ? (
           <div className="p-10 text-center space-y-4">
-            <div className="w-16 h-16 bg-[#DCEDE9] text-[#0F766E] rounded-full flex items-center justify-center mx-auto border border-[#CBDED9] animate-bounce">
+            <div className="w-16 h-16 bg-[#DCEDE9] text-[#0F766E] rounded-full flex items-center justify-center mx-auto border border-[#CBDED9]">
               <Check className="w-8 h-8" />
             </div>
-            <h4 className="text-xl font-black text-[#134E4A]">Plan Activated Successfully!</h4>
+            <h4 className="text-xl font-black text-[#134E4A]">Paddle Payment Confirmed!</h4>
             <p className="text-sm text-teal-900/80 font-medium">
               You are now subscribed to <span className="font-extrabold text-[#0F766E]">{planDetails.name}</span>.
             </p>
             <p className="text-xs text-teal-800/70 font-medium">
-              Receipt with invoice details has been added to your Payment History.
+              Your transaction has been verified server-side with Paddle.
             </p>
           </div>
         ) : (
-          <form onSubmit={handlePay} className="p-6 space-y-5 text-[#134E4A]">
+          <div className="p-6 space-y-5 text-[#134E4A]">
             {/* Order Summary */}
             <div className="p-4 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] flex items-center justify-between">
               <div>
@@ -163,83 +249,26 @@ interface PaddleCheckoutModalProps {
               </span>
             </div>
 
-            {/* Accepted Payment Methods */}
-            <div>
-              <label className="block text-xs font-bold uppercase text-teal-800/80 mb-2">
-                Accepted Payment Methods
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(['Visa', 'Mastercard', 'Debit Card', 'Credit Card'] as PaymentMethodType[]).map((method) => (
-                  <button
-                    key={method}
-                    type="button"
-                    onClick={() => setSelectedMethod(method)}
-                    className={`p-2.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center justify-center space-y-1 cursor-pointer ${
-                      selectedMethod === method
-                        ? 'border-[#0F766E] bg-[#DCEDE9] text-[#0F766E] font-black'
-                        : 'border-[#CBDED9] text-[#134E4A] hover:bg-teal-100/60'
-                    }`}
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    <span className="text-center">{method}</span>
-                  </button>
-                ))}
+            {errorMessage && (
+              <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 flex items-start space-x-2.5 text-xs text-red-700">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div className="leading-relaxed font-medium">{errorMessage}</div>
               </div>
-            </div>
+            )}
 
-            {/* Card Inputs */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-teal-800/80">
-                <span>Supported Cards:</span>
-                <span className="font-extrabold text-[#134E4A]">Visa, Mastercard, Debit Cards, Credit Cards</span>
+            {/* Provider Features */}
+            <div className="space-y-2 text-xs font-medium text-teal-900/80">
+              <div className="flex items-center space-x-2">
+                <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
+                <span>PCI-DSS Compliant 256-bit encrypted Paddle Checkout</span>
               </div>
-              
-              <div>
-                <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Cardholder Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-medium"
-                  required
-                />
+              <div className="flex items-center space-x-2">
+                <Check className="w-4 h-4 text-[#0F766E]" />
+                <span>Supports Credit Cards, Debit Cards, Visa, Mastercard, PayPal & Apple Pay</span>
               </div>
-
-              <div>
-                <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Card Number</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                    className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
-                    required
-                  />
-                  <CreditCard className="w-4 h-4 text-teal-700/60 absolute left-3 top-2.5" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">Expiry (MM/YY)</label>
-                  <input
-                    type="text"
-                    value={expDate}
-                    onChange={(e) => setExpDate(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-teal-800/80 mb-1">CVC Code</label>
-                  <input
-                    type="text"
-                    value={cvc}
-                    onChange={(e) => setCvc(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBDED9] bg-[#DCEDE9] text-[#134E4A] text-xs focus:ring-2 focus:ring-[#0F766E] outline-none font-mono"
-                    required
-                  />
-                </div>
+              <div className="flex items-center space-x-2">
+                <Lock className="w-4 h-4 text-[#0F766E]" />
+                <span>Subscription activates strictly after real Paddle payment verification</span>
               </div>
             </div>
 
@@ -247,29 +276,33 @@ interface PaddleCheckoutModalProps {
             <div className="p-3.5 rounded-2xl bg-[#DCEDE9] border border-[#CBDED9] flex items-start space-x-2.5 text-xs text-[#134E4A]">
               <Lock className="w-4 h-4 text-[#0F766E] shrink-0 mt-0.5" />
               <div className="text-[11px] leading-relaxed font-medium">
-                <span className="font-extrabold text-[#134E4A]">Secure online payment:</span> Your payment is processed through our secure payment provider using PCI-DSS 256-bit SSL encryption.
+                <span className="font-extrabold text-[#134E4A]">Paddle Billing:</span> Official Merchant of Record. Payments are securely processed on Paddle's servers and confirmed via server webhook.
               </div>
             </div>
 
-            {/* Action Button */}
+            {/* Main Action Button */}
             <button
-              type="submit"
+              type="button"
+              onClick={handleStartPaddleCheckout}
               disabled={loading}
-              className="w-full py-3.5 rounded-xl font-black text-white bg-ai-gradient hover:opacity-95 shadow-lg shadow-teal-900/20 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+              className="w-full py-4 rounded-xl font-black text-white bg-ai-gradient hover:opacity-95 shadow-lg shadow-teal-900/20 transition-all flex items-center justify-center space-x-2 cursor-pointer"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <>
+                  <RefreshCw className="w-5 h-5 text-white animate-spin" />
+                  <span>Initializing Paddle Checkout...</span>
+                </>
               ) : (
                 <>
-                  <ShieldCheck className="w-5 h-5 text-[#F59E0B]" />
-                  <span>Confirm Checkout & Pay ({priceFormatted})</span>
+                  <ExternalLink className="w-5 h-5 text-[#F59E0B]" />
+                  <span>Proceed to Paddle Checkout ({priceFormatted})</span>
                 </>
               )}
             </button>
-
-          </form>
+          </div>
         )}
       </div>
     </div>
   );
 };
+

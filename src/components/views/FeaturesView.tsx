@@ -95,7 +95,7 @@ export const FeaturesView: React.FC<{ onNavigate: (v: string) => void }> = ({ on
       id: 'pricing',
       icon: <Crown className="w-6 h-6 text-[#F59E0B]" />,
       title: 'Unlimited Premium & Global Payments',
-      badge: 'Stripe & Regional',
+      badge: 'Paddle & Regional',
       target: 'pricing',
       btnText: 'View Membership Plans',
       description: 'Secure online checkout supporting Visa, Mastercard, Debit Cards, and Credit Cards in USD & PKR with a 14-day 100% money-back guarantee.'

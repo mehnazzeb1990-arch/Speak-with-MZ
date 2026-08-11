@@ -380,7 +380,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const upgradePlan = (plan: SubscriptionPlan, paymentMethodName = 'Visa / Mastercard', last4Digits = '4242') => {
+  const upgradePlan = (plan: SubscriptionPlan, paymentMethodName = 'Paddle Secure Gateway', last4Digits = '4242') => {
     if (!user) return;
     const renewal = new Date();
     renewal.setMonth(renewal.getMonth() + 1);
@@ -418,8 +418,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const cancelSubscription = () => {
+  const cancelSubscription = async () => {
     if (!user) return;
+    try {
+      await fetch('/api/paddle/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptionId: (user as any).paddleSubscriptionId }),
+      });
+    } catch (e) {
+      console.warn('Paddle cancel subscription notice:', e);
+    }
     updateProfile({
       subscriptionStatus: 'canceled',
       autoRenew: false,
@@ -434,7 +443,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const requestRefund = async (paymentId: string, reason: string): Promise<boolean> => {
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      await fetch('/api/paddle/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactionId: paymentId, reason }),
+      });
+    } catch (e) {
+      console.warn('Paddle refund notice:', e);
+    }
     setPayments((prev) =>
       prev.map((p) => (p.id === paymentId ? { ...p, status: 'refunded' as const } : p))
     );
@@ -448,7 +465,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const adminRefundPayment = (paymentId: string) => {
+  const adminRefundPayment = async (paymentId: string) => {
+    try {
+      await fetch('/api/paddle/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactionId: paymentId, reason: 'Admin refund' }),
+      });
+    } catch (e) {
+      console.warn('Paddle admin refund notice:', e);
+    }
     setPayments((prev) =>
       prev.map((p) => (p.id === paymentId ? { ...p, status: 'refunded' as const } : p))
     );
