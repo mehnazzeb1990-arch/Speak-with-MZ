@@ -51,25 +51,31 @@ export class PaddlePaymentProvider implements PaymentProvider {
         body: JSON.stringify(params),
       });
 
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         return await res.json();
       }
-    } catch (e) {
-      console.warn('Paddle checkout session creation failed or offline:', e);
+      const text = await res.text();
+      return { success: false, error: `Paddle checkout session failed (${res.status}): ${text.slice(0, 200)}` };
+    } catch (e: any) {
+      console.warn('Paddle checkout session creation error:', e);
+      return { success: false, error: e.message || 'Network error creating Paddle session' };
     }
-    return { simulated: true, transactionId: `txn_pad_${Date.now()}` };
   }
 
   async verifyTransaction(transactionId: string) {
     try {
       const res = await fetch(`/api/paddle/verify-transaction/${transactionId}`);
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         return await res.json();
       }
-    } catch (e) {
-      console.warn('Paddle verify transaction failed:', e);
+      const text = await res.text();
+      return { verified: false, error: `Verification failed (${res.status}): ${text.slice(0, 200)}` };
+    } catch (e: any) {
+      console.warn('Paddle verify transaction error:', e);
+      return { verified: false, error: e.message || 'Verification network error' };
     }
-    return { verified: false, error: 'Verification failed.' };
   }
 
   async processPayment(params: CardPaymentParams): Promise<PaymentProcessResult> {

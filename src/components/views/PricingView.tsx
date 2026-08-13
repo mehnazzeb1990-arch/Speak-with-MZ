@@ -51,7 +51,14 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
 
     if (paddleTxn) {
       fetch(`/api/paddle/verify-transaction/${paddleTxn}`)
-        .then((res) => res.json())
+        .then(async (res) => {
+          const contentType = res.headers.get('content-type') || '';
+          if (!res.ok || !contentType.includes('application/json')) {
+            const text = await res.text();
+            throw new Error(`Transaction verification failed (${res.status}): ${text.slice(0, 200)}`);
+          }
+          return res.json();
+        })
         .then((data) => {
           if (data.verified) {
             upgradePlan(data.plan || targetPlan, 'Paddle Secure Gateway');
@@ -96,6 +103,15 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
           userEmail: user?.email,
         }),
       });
+
+      const contentType = response.headers.get('content-type') || '';
+      if (!response.ok || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.warn(`Paddle API non-JSON or error response (${response.status}):`, text.slice(0, 300));
+        setSelectedPlan(plan);
+        return;
+      }
+
       const data = await response.json();
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;

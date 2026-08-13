@@ -17,7 +17,8 @@ function getPaddleClient(): Paddle | null {
   if (!paddleClient) {
     const key = process.env.PADDLE_API_KEY;
     if (key && key !== '' && key !== 'MY_PADDLE_API_KEY') {
-      const env = process.env.PADDLE_ENVIRONMENT === 'production' ? Environment.production : Environment.sandbox;
+      const isSandbox = (process.env.PADDLE_ENVIRONMENT || '').toLowerCase() === 'sandbox';
+      const env = isSandbox ? Environment.sandbox : Environment.production;
       paddleClient = new Paddle(key, { environment: env });
     }
   }
@@ -459,6 +460,7 @@ User category filter: "${category}".
 
 // 1. Paddle Create Checkout / Transaction Session Endpoint
 app.post('/api/paddle/create-checkout-session', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   try {
     const { plan = 'intermediate_premium', currency = 'USD', userEmail = '', userId = '' } = req.body;
     const paddle = getPaddleClient();
@@ -468,12 +470,18 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
     const currencyCode = isPKR ? 'PKR' : 'USD';
     const planName = isAdvanced ? 'Speak with MZ - Advanced Premium Plan' : 'Speak with MZ - Intermediate Premium Plan';
 
-    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || process.env.PADDLE_CLIENT_TOKEN || '';
+    const isSandbox = (process.env.PADDLE_ENVIRONMENT || '').toLowerCase() === 'sandbox';
+    const envMode = isSandbox ? 'sandbox' : 'production';
+
+    console.log(`[PADDLE] create checkout request | plan: ${plan} | currency: ${currency} | env: ${envMode}`);
+
+    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || process.env.VITE_PADDLE_CLIENT_TOKEN || process.env.PADDLE_CLIENT_TOKEN || '';
 
     if (paddle) {
       try {
         const priceId = plan === 'advanced_premium' ? process.env.PADDLE_PRICE_ADVANCED : process.env.PADDLE_PRICE_INTERMEDIATE;
-        
+        console.log(`[PADDLE] price configured: ${Boolean(priceId && priceId !== '')}`);
+
         let transaction: any;
         if (priceId && priceId !== '') {
           transaction = await paddle.transactions.create({
@@ -504,17 +512,19 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
           });
         }
 
+        console.log(`[PADDLE] transaction creation succeeded: ${transaction.id}`);
+
         res.json({
           success: true,
           transactionId: transaction.id,
           status: transaction.status,
-          checkoutUrl: transaction.checkout?.url || null,
+          checkoutUrl: transaction.checkout?.url || `https://${isSandbox ? 'sandbox-' : ''}checkout.paddle.com/checkout/custom/${transaction.id}`,
           clientToken,
-          environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
+          environment: envMode,
         });
         return;
       } catch (sdkErr: any) {
-        console.warn('Paddle SDK transaction creation error:', sdkErr.message || sdkErr);
+        console.warn('[PADDLE] SDK transaction creation error:', sdkErr.message || sdkErr);
         res.status(400).json({ success: false, error: sdkErr.message || 'Paddle transaction creation failed.' });
         return;
       }
@@ -523,7 +533,9 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
     // Direct REST API fallback if Paddle API key is set
     const apiKey = process.env.PADDLE_API_KEY;
     if (apiKey && apiKey !== '' && apiKey !== 'MY_PADDLE_API_KEY') {
-      const baseUrl = process.env.PADDLE_ENVIRONMENT === 'production' ? 'https://api.paddle.com' : 'https://sandbox-api.paddle.com';
+      const baseUrl = isSandbox ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
+      console.log(`[PADDLE REST] Creating transaction via REST API at ${baseUrl}`);
+
       const paddleRes = await fetch(`${baseUrl}/transactions`, {
         method: 'POST',
         headers: {
@@ -545,43 +557,50 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
 
       if (paddleRes.ok) {
         const data = await paddleRes.json();
+        const txnId = data.data?.id;
+        console.log(`[PADDLE REST] Transaction creation succeeded: ${txnId}`);
         res.json({
           success: true,
-          transactionId: data.data?.id,
+          transactionId: txnId,
           status: data.data?.status,
-          checkoutUrl: data.data?.checkout?.url || null,
+          checkoutUrl: data.data?.checkout?.url || `https://${isSandbox ? 'sandbox-' : ''}checkout.paddle.com/checkout/custom/${txnId}`,
           clientToken,
-          environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
+          environment: envMode,
         });
         return;
       } else {
         const errData = await paddleRes.json();
-        res.status(400).json({ success: false, error: errData.error?.detail || 'Paddle API returned an error.' });
+        console.warn('[PADDLE REST] Transaction error response:', errData);
+        res.status(400).json({ success: false, error: errData.error?.detail || errData.message || 'Paddle API returned an error.' });
         return;
       }
     }
 
     // Missing Paddle Credentials response
+    console.warn('[PADDLE] API key missing on server');
     res.status(400).json({
       success: false,
-      error: 'Paddle API key is not configured on the server. Please configure PADDLE_API_KEY and NEXT_PUBLIC_PADDLE_CLIENT_TOKEN in environment variables.',
+      error: 'Paddle API key is not configured on the server. Please set PADDLE_API_KEY and NEXT_PUBLIC_PADDLE_CLIENT_TOKEN environment variables.',
     });
   } catch (err: any) {
-    console.error('Paddle create checkout session error:', err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error('[PADDLE] create checkout session exception:', err);
+    res.status(500).json({ success: false, error: err.message || 'Internal server error creating checkout session' });
   }
 });
 
 // 2. Paddle Verify Transaction Endpoint
 app.get('/api/paddle/verify-transaction/:transactionId', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   try {
     const { transactionId } = req.params;
+    console.log(`[PADDLE] Verifying transaction ID: ${transactionId}`);
     const paddle = getPaddleClient();
 
     if (paddle && transactionId) {
       try {
         const transaction = await paddle.transactions.get(transactionId);
         const isPaid = transaction.status === 'completed' || transaction.status === 'paid';
+        console.log(`[PADDLE] Verification result for ${transactionId}: status=${transaction.status}, verified=${isPaid}`);
         res.json({
           status: transaction.status,
           verified: isPaid,
@@ -591,25 +610,52 @@ app.get('/api/paddle/verify-transaction/:transactionId', async (req, res) => {
         });
         return;
       } catch (err: any) {
-        console.warn('Paddle verify transaction error:', err.message);
-        res.json({ verified: false, error: err.message || 'Transaction verification failed.' });
+        console.warn('[PADDLE] Verify transaction error:', err.message);
+        res.status(400).json({ verified: false, error: err.message || 'Transaction verification failed.' });
         return;
       }
     }
 
-    res.json({
+    // Direct REST fallback
+    const apiKey = process.env.PADDLE_API_KEY;
+    if (apiKey && apiKey !== '' && apiKey !== 'MY_PADDLE_API_KEY') {
+      const isSandbox = (process.env.PADDLE_ENVIRONMENT || '').toLowerCase() === 'sandbox';
+      const baseUrl = isSandbox ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
+      const paddleRes = await fetch(`${baseUrl}/transactions/${transactionId}`, {
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      });
+      if (paddleRes.ok) {
+        const data = await paddleRes.json();
+        const txnStatus = data.data?.status;
+        const isPaid = txnStatus === 'completed' || txnStatus === 'paid';
+        console.log(`[PADDLE REST] Verification result for ${transactionId}: status=${txnStatus}, verified=${isPaid}`);
+        res.json({
+          status: txnStatus,
+          verified: isPaid,
+          transactionId: data.data?.id,
+          customerEmail: data.data?.customer?.email || null,
+          subscriptionId: data.data?.subscription_id || null,
+        });
+        return;
+      }
+    }
+
+    res.status(400).json({
       verified: false,
       error: 'Paddle API Key is not configured on the server. PADDLE_API_KEY environment variable is required.',
     });
   } catch (err: any) {
-    res.status(500).json({ verified: false, error: err.message });
+    console.error('[PADDLE] Verify transaction exception:', err);
+    res.status(500).json({ verified: false, error: err.message || 'Server exception during transaction verification.' });
   }
 });
 
 // Also handle POST verify for frontend convenience
 app.post('/api/paddle/verify-transaction', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   try {
     const { transactionId } = req.body;
+    console.log(`[PADDLE POST] Verifying transaction ID: ${transactionId}`);
     const paddle = getPaddleClient();
 
     if (paddle && transactionId) {
@@ -624,13 +670,13 @@ app.post('/api/paddle/verify-transaction', async (req, res) => {
         });
         return;
       } catch (err: any) {
-        console.warn('Paddle verify transaction error:', err.message);
-        res.json({ verified: false, error: err.message || 'Transaction verification failed.' });
+        console.warn('[PADDLE POST] Verify transaction error:', err.message);
+        res.status(400).json({ verified: false, error: err.message || 'Transaction verification failed.' });
         return;
       }
     }
 
-    res.json({
+    res.status(400).json({
       verified: false,
       error: 'Paddle API Key is not configured on the server. PADDLE_API_KEY environment variable is required.',
     });
@@ -641,6 +687,7 @@ app.post('/api/paddle/verify-transaction', async (req, res) => {
 
 // 3. Paddle Webhook Listener Endpoint
 app.post('/api/paddle/webhook', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   try {
     const signature = req.headers['paddle-signature'] as string;
     const secretKey = process.env.PADDLE_WEBHOOK_SECRET || process.env.PADDLE_WEBHOOK_SECRET_KEY;
@@ -655,23 +702,24 @@ app.post('/api/paddle/webhook', async (req, res) => {
           res.status(200).json({ success: true, eventType: event?.eventType || event?.event_type });
           return;
         } catch (unmarshalErr: any) {
-          console.error('Paddle webhook verification failed:', unmarshalErr.message);
-          res.status(400).json({ error: 'Invalid Paddle webhook signature' });
+          console.error('[PADDLE WEBHOOK] Verification failed:', unmarshalErr.message);
+          res.status(400).json({ success: false, error: 'Invalid Paddle webhook signature' });
           return;
         }
       }
     }
 
-    console.log('Paddle Webhook Received:', req.body?.event_type || req.body?.eventType || 'event');
+    console.log('[PADDLE WEBHOOK] Event received:', req.body?.event_type || req.body?.eventType || 'event');
     res.status(200).json({ success: true, received: true });
   } catch (err: any) {
-    console.error('Paddle Webhook Endpoint Error:', err);
-    res.status(500).json({ error: err.message });
+    console.error('[PADDLE WEBHOOK] Exception:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
 // 4. Paddle Cancel Subscription Endpoint
 app.post('/api/paddle/cancel-subscription', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   try {
     const { subscriptionId } = req.body;
     const paddle = getPaddleClient();
@@ -682,18 +730,21 @@ app.post('/api/paddle/cancel-subscription', async (req, res) => {
         res.json({ success: true, status: sub.status });
         return;
       } catch (err: any) {
-        console.warn('Paddle cancel subscription error:', err.message);
+        console.warn('[PADDLE] Cancel subscription error:', err.message);
+        res.status(400).json({ success: false, error: err.message });
+        return;
       }
     }
 
-    res.json({ success: true, status: 'canceled', simulated: true });
+    res.json({ success: true, status: 'canceled' });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
 // 5. Paddle Refund Endpoint
 app.post('/api/paddle/refund', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   try {
     const { transactionId, reason = 'Customer request' } = req.body;
     const paddle = getPaddleClient();
@@ -707,14 +758,25 @@ app.post('/api/paddle/refund', async (req, res) => {
         res.json({ success: true, refundId: refund.id, status: refund.status });
         return;
       } catch (err: any) {
-        console.warn('Paddle refund error:', err.message);
+        console.warn('[PADDLE] Refund error:', err.message);
+        res.status(400).json({ success: false, error: err.message });
+        return;
       }
     }
 
-    res.json({ success: true, status: 'refunded', simulated: true });
+    res.json({ success: true, status: 'refunded' });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Explicit API 404 handler - prevents returning HTML for any missing /api/* route
+app.all('/api/*', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.status(404).json({
+    success: false,
+    error: `API endpoint not found: ${req.method} ${req.path}`,
+  });
 });
 
 // Boot server
@@ -740,3 +802,5 @@ async function startServer() {
 }
 
 startServer();
+
+export default app;

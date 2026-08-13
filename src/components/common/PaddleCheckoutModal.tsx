@@ -94,6 +94,17 @@ export const PaddleCheckoutModal: React.FC<PaddleCheckoutModalProps> = ({ plan, 
     setLoading(true);
     try {
       const res = await fetch(`/api/paddle/verify-transaction/${txnId}`);
+      const contentType = res.headers.get('content-type') || '';
+      
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Verification API failed (${res.status}): ${text.slice(0, 200)}`);
+      }
+      if (!contentType.includes('application/json')) {
+        const text = await res.text();
+        throw new Error(`Verification API returned non-JSON (${res.status}): ${text.slice(0, 200)}`);
+      }
+
       const data = await res.json();
 
       if (data.verified) {
@@ -134,6 +145,18 @@ export const PaddleCheckoutModal: React.FC<PaddleCheckoutModalProps> = ({ plan, 
         }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Paddle checkout failed (${res.status}): ${text.slice(0, 300)}`);
+      }
+
+      if (!contentType.includes('application/json')) {
+        const text = await res.text();
+        throw new Error(`Paddle API returned non-JSON response (${res.status}): ${text.slice(0, 300)}`);
+      }
+
       const data = await res.json();
 
       if (!data.success) {
@@ -165,7 +188,7 @@ export const PaddleCheckoutModal: React.FC<PaddleCheckoutModalProps> = ({ plan, 
 
       // Fallback redirect URL format if transactionId returned
       if (data.transactionId) {
-        const env = data.environment === 'production' ? '' : 'sandbox-';
+        const env = data.environment === 'sandbox' ? 'sandbox-' : '';
         window.location.href = `https://${env}checkout.paddle.com/checkout/custom/${data.transactionId}`;
         return;
       }
