@@ -43,10 +43,9 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
 
   const isPKR = currency === 'PKR';
 
-  // Handle URL redirect query parameters from Paddle or Hosted Checkout
+  // Handle URL redirect query parameters from Paddle
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const payment = params.get('payment');
     const paddleTxn = params.get('paddle_txn') || params.get('transaction_id') || params.get('txn');
     const targetPlan = (params.get('plan') as SubscriptionPlan) || selectedPlan || 'intermediate_premium';
 
@@ -57,25 +56,21 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
           if (data.verified) {
             upgradePlan(data.plan || targetPlan, 'Paddle Secure Gateway');
             setPaymentState('success');
+          } else {
+            setPaymentState('error');
           }
         })
         .catch(() => {
-          upgradePlan(targetPlan, 'Paddle Secure Gateway');
-          setPaymentState('success');
+          setPaymentState('error');
         });
       window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (payment === 'success') {
-      upgradePlan(targetPlan, 'Paddle Secure Gateway');
-      setPaymentState('success');
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (payment === 'cancelled') {
+    } else if (params.get('payment') === 'cancelled') {
       setPaymentState('cancelled');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
   const handleCheckoutSuccess = () => {
-    upgradePlan(selectedPlan || 'intermediate_premium', 'Paddle Secure Gateway');
     setPaymentState('success');
   };
 
