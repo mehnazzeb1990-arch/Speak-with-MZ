@@ -1,0 +1,115 @@
+import { Environment, Paddle } from '@paddle/paddle-node-sdk';
+
+export default async function handler(req: any, res: any) {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).json({ ok: true });
+  }
+
+  // Support transaction ID via query parameter, url path, or body
+  let transactionId = req.query?.transactionId || '';
+  if (!transactionId && req.body) {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body;
+    transactionId = body.transactionId || '';
+  }
+  if (!transactionId && req.url) {
+    const match = req.url.match(/verify-transaction\/([^/?]+)/);
+    if (match) {
+      transactionId = match[1];
+    }
+  }
+
+  if (!transactionId) {
+    return res.status(400).json({
+      verified: false,
+      error: 'Transaction ID is required for verification.',
+    });
+  }
+
+  console.log(`[PADDLE] Verifying transaction ID: ${transactionId}`);
+
+  const apiKey = (process.env.PADDLE_API_KEY || '').trim();
+  const rawEnv = (process.env.PADDLE_ENVIRONMENT || '').trim().toLowerCase();
+  const isSandbox = rawEnv === 'sandbox';
+
+  if (!apiKey || apiKey === 'MY_PADDLE_API_KEY') {
+    console.error('[PADDLE] API key missing for verification');
+    return res.status(500).json({
+      verified: false,
+      error: 'Paddle API key is not configured on the server.',
+    });
+  }
+
+  try {
+    const env = isSandbox ? Environment.sandbox : Environment.production;
+    const paddle = new Paddle(apiKey, { environment: env });
+
+    const transaction = await paddle.transactions.get(transactionId);
+    const isPaid = transaction.status === 'completed' || transaction.status === 'paid';
+    
+    // Determine plan from transaction customData or price ID match
+    const intermediatePrice = (process.env.PADDLE_PRICE_INTERMEDIATE || '').trim();
+    const advancedPrice = (process.env.PADDLE_PRICE_ADVANCED || '').trim();
+    
+    let resolvedPlan = (transaction.customData as any)?.plan;
+    if (!resolvedPlan && transaction.items && transaction.items.length > 0) {
+      const priceId = (transaction.items[0] as any)?.price?.id || (transaction.items[0] as any)?.priceId;
+      if (priceId && advancedPrice && priceId === advancedPrice) {
+        resolvedPlan = 'advanced_premium';
+      } else if (priceId && intermediatePrice && priceId === intermediatePrice) {
+        resolvedPlan = 'intermediate_premium';
+      }
+    }
+    if (!resolvedPlan) {
+      resolvedPlan = 'intermediate_premium';
+    }
+
+    console.log(`[PADDLE] Verification result for ${transactionId}: status=${transaction.status}, verified=${isPaid}, plan=${resolvedPlan}`);
+
+    return res.status(200).json({
+      status: transaction.status,
+      verified: isPaid,
+      plan: resolvedPlan,
+      transactionId: transaction.id,
+      customerEmail: (transaction as any).customer?.email || (transaction.customData as any)?.userEmail || null,
+      subscriptionId: (transaction as any).subscriptionId || null,
+    });
+  } catch (sdkErr: any) {
+    console.warn('[PADDLE] SDK verify failed, trying REST fallback:', sdkErr.message);
+
+    try {
+      const baseUrl = isSandbox ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
+      const paddleRes = await fetch(`${baseUrl}/transactions/${transactionId}`, {
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      });
+
+      if (paddleRes.ok) {
+        const restData = await paddleRes.json();
+        const txn = restData.data;
+        const isPaid = txn?.status === 'completed' || txn?.status === 'paid';
+        const plan = txn?.custom_data?.plan || 'intermediate_premium';
+
+        console.log(`[PADDLE REST] Verified ${transactionId}: status=${txn?.status}, verified=${isPaid}`);
+        return res.status(200).json({
+          status: txn?.status,
+          verified: isPaid,
+          plan,
+          transactionId: txn?.id,
+          customerEmail: txn?.customer?.email || null,
+          subscriptionId: txn?.subscription_id || null,
+        });
+      }
+    } catch (restErr) {
+      console.warn('[PADDLE REST] REST verification failed:', restErr);
+    }
+
+    return res.status(400).json({
+      verified: false,
+      error: sdkErr.message || 'Transaction verification failed.',
+    });
+  }
+}
