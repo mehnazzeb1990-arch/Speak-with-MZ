@@ -35,8 +35,8 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [refundModalOpen, setRefundModalOpen] = useState(false);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
-  const [paymentState, setPaymentState] = useState<'pricing' | 'success' | 'cancelled'>('pricing');
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [paymentState, setPaymentState] = useState<'pricing' | 'success' | 'cancelled' | 'error'>('pricing');
+  const [processingPlan, setProcessingPlan] = useState<SubscriptionPlan | null>(null);
 
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -78,10 +78,14 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
   }, []);
 
   const handleCheckoutSuccess = () => {
+    setSelectedPlan(null);
+    setProcessingPlan(null);
     setPaymentState('success');
   };
 
   const handleCheckoutCancel = () => {
+    setSelectedPlan(null);
+    setProcessingPlan(null);
     setPaymentState('cancelled');
   };
 
@@ -91,7 +95,9 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
   };
 
   const handleUpgradeToPremium = async (plan: SubscriptionPlan) => {
-    setIsRedirecting(true);
+    if (processingPlan) return; // Prevent duplicate concurrent requests
+    setProcessingPlan(plan);
+
     try {
       const response = await fetch('/api/paddle/create-checkout-session', {
         method: 'POST',
@@ -107,8 +113,9 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
       const contentType = response.headers.get('content-type') || '';
       if (!response.ok || !contentType.includes('application/json')) {
         const text = await response.text();
-        console.warn(`Paddle API non-JSON or error response (${response.status}):`, text.slice(0, 300));
+        console.warn(`Paddle API error response (${response.status}):`, text.slice(0, 300));
         setSelectedPlan(plan);
+        setProcessingPlan(null);
         return;
       }
 
@@ -117,13 +124,13 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
         window.location.href = data.checkoutUrl;
         return;
       }
+      setSelectedPlan(plan);
     } catch (err) {
       console.error('Failed to create Paddle checkout session:', err);
+      setSelectedPlan(plan);
     } finally {
-      setIsRedirecting(false);
+      setProcessingPlan(null);
     }
-    // Fallback to interactive Paddle modal checkout
-    setSelectedPlan(plan);
   };
 
   return (
@@ -426,10 +433,10 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
               <div className="pt-4">
                 <button
                   onClick={() => handleUpgradeToPremium('intermediate_premium')}
-                  disabled={isRedirecting}
-                  className="w-full py-3.5 rounded-2xl bg-ai-gradient hover:opacity-95 font-black text-white text-xs transition-all shadow-lg shadow-teal-900/50 flex items-center justify-center space-x-2 cursor-pointer group disabled:opacity-75"
+                  disabled={Boolean(processingPlan)}
+                  className="w-full py-3.5 rounded-2xl bg-ai-gradient hover:opacity-95 font-black text-white text-xs transition-all shadow-lg shadow-teal-900/50 flex items-center justify-center space-x-2 cursor-pointer group disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isRedirecting ? (
+                  {processingPlan === 'intermediate_premium' ? (
                     <>
                       <Loader2 className="w-4 h-4 text-white animate-spin" />
                       <span>Connecting to Paddle...</span>
@@ -514,10 +521,10 @@ export const PricingView: React.FC<PricingViewProps> = ({ onNavigate }) => {
               <div className="pt-4">
                 <button
                   onClick={() => handleUpgradeToPremium('advanced_premium')}
-                  disabled={isRedirecting}
-                  className="w-full py-3.5 rounded-2xl bg-[#F59E0B] hover:bg-[#d98a08] font-black text-slate-950 text-xs transition-all shadow-lg shadow-amber-900/50 flex items-center justify-center space-x-2 cursor-pointer group disabled:opacity-75"
+                  disabled={Boolean(processingPlan)}
+                  className="w-full py-3.5 rounded-2xl bg-[#F59E0B] hover:bg-[#d98a08] font-black text-slate-950 text-xs transition-all shadow-lg shadow-amber-900/50 flex items-center justify-center space-x-2 cursor-pointer group disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isRedirecting ? (
+                  {processingPlan === 'advanced_premium' ? (
                     <>
                       <Loader2 className="w-4 h-4 text-slate-950 animate-spin" />
                       <span>Connecting to Paddle...</span>
