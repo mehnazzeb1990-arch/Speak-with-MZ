@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import { Environment, Paddle } from '@paddle/paddle-node-sdk';
 import dotenv from 'dotenv';
@@ -9,7 +10,17 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
+// 1. Guard against pre-parsed request streams in Vercel serverless environment
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    (req as any)._body = true;
+  }
+  next();
+});
+
+// 2. Standard body parsers
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Lazy Paddle initialization
 let paddleClient: Paddle | null = null;
@@ -460,15 +471,30 @@ User category filter: "${category}".
   }
 });
 
+// Helper to register routes under both /api/* and /* (for Vercel serverless rewrites compatibility)
+function registerGet(routePath: string, handler: express.RequestHandler) {
+  app.get(routePath, handler);
+  if (routePath.startsWith('/api/')) {
+    app.get(routePath.replace('/api/', '/'), handler);
+  }
+}
+
+function registerPost(routePath: string, handler: express.RequestHandler) {
+  app.post(routePath, handler);
+  if (routePath.startsWith('/api/')) {
+    app.post(routePath.replace('/api/', '/'), handler);
+  }
+}
+
 // ==========================================
 // Paddle Billing API Endpoints
 // ==========================================
 
 // 1. Paddle Create Checkout / Transaction Session Endpoint
-app.post('/api/paddle/create-checkout-session', async (req, res) => {
+registerPost('/api/paddle/create-checkout-session', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
-    const { plan = 'intermediate_premium', currency = 'USD', userEmail = '', userId = '' } = req.body;
+    const { plan = 'intermediate_premium', currency = 'USD', userEmail = '', userId = '' } = req.body || {};
     const isAdvanced = plan === 'advanced_premium';
     const isPKR = currency === 'PKR';
     const amountStr = isPKR ? (isAdvanced ? '4200' : '2800') : (isAdvanced ? '1500' : '1000');
@@ -493,15 +519,18 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
       ''
     ).trim();
 
+    // Isolated price selection based exclusively on requested plan
     const selectedPriceId = isAdvanced ? advancedPrice : intermediatePrice;
 
     // Safe diagnostics logging (NO secrets logged)
-    console.log(`[PADDLE] environment: ${envMode}`);
+    console.log(`[PADDLE] request received: ${req.method} ${req.originalUrl || req.url}`);
+    console.log(`[PADDLE] plan: ${plan}`);
+    console.log(`[PADDLE] currency: ${currency}`);
     console.log(`[PADDLE] API key present: ${hasApiKey}`);
-    console.log(`[PADDLE] intermediate price configured: ${Boolean(intermediatePrice)}`);
-    console.log(`[PADDLE] advanced price configured: ${Boolean(advancedPrice)}`);
-    console.log(`[PADDLE] selected plan: ${plan}`);
-    console.log(`[PADDLE] selected price: ${Boolean(selectedPriceId) ? 'configured' : 'missing'}`);
+    console.log(`[PADDLE] intermediate price present: ${Boolean(intermediatePrice)}`);
+    console.log(`[PADDLE] advanced price present: ${Boolean(advancedPrice)}`);
+    console.log(`[PADDLE] environment: ${envMode}`);
+    console.log(`[PADDLE] selected price ID present: ${Boolean(selectedPriceId)}`);
 
     const clientToken = (
       process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN ||
@@ -510,10 +539,12 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
       ''
     ).trim();
 
+    console.log(`[PADDLE] initializing SDK`);
     const paddle = getPaddleClient();
 
     if (paddle) {
       try {
+        console.log(`[PADDLE] creating transaction with SDK`);
         let transaction: any;
         if (selectedPriceId) {
           transaction = await paddle.transactions.create({
@@ -524,7 +555,7 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
             },
           });
         } else {
-          // Dynamic custom item price fallback if price ID not yet created in Paddle dashboard
+          // Dynamic custom item price fallback if price ID not yet set in environment
           transaction = await paddle.transactions.create({
             items: [
               {
@@ -550,19 +581,26 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
           });
         }
 
-        console.log(`[PADDLE] transaction creation succeeded: ${transaction.id}`);
+        console.log(`[PADDLE] transaction created: ${transaction.id}`);
+        const checkoutUrl = transaction.checkout?.url || `https://${isSandbox ? 'sandbox-' : ''}checkout.paddle.com/checkout/custom/${transaction.id}`;
+        console.log(`[PADDLE] checkout URL generated: ${checkoutUrl ? 'yes' : 'no'}`);
 
         res.json({
           success: true,
           transactionId: transaction.id,
           status: transaction.status,
-          checkoutUrl: transaction.checkout?.url || `https://${isSandbox ? 'sandbox-' : ''}checkout.paddle.com/checkout/custom/${transaction.id}`,
+          checkoutUrl,
           clientToken,
           environment: envMode,
         });
         return;
       } catch (sdkErr: any) {
-        console.warn('[PADDLE] SDK transaction creation error:', sdkErr.message || sdkErr);
+        console.error('[PADDLE] SDK transaction error:', {
+          name: sdkErr.name,
+          message: sdkErr.message,
+          code: sdkErr.code,
+          detail: sdkErr.detail,
+        });
         res.status(400).json({
           success: false,
           error: sdkErr.message || 'Paddle transaction creation failed',
@@ -607,12 +645,13 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
       if (paddleRes.ok) {
         const data = await paddleRes.json();
         const txnId = data.data?.id;
-        console.log(`[PADDLE REST] Transaction creation succeeded: ${txnId}`);
+        console.log(`[PADDLE REST] Transaction created: ${txnId}`);
+        const checkoutUrl = data.data?.checkout?.url || `https://${isSandbox ? 'sandbox-' : ''}checkout.paddle.com/checkout/custom/${txnId}`;
         res.json({
           success: true,
           transactionId: txnId,
           status: data.data?.status,
-          checkoutUrl: data.data?.checkout?.url || `https://${isSandbox ? 'sandbox-' : ''}checkout.paddle.com/checkout/custom/${txnId}`,
+          checkoutUrl,
           clientToken,
           environment: envMode,
         });
@@ -645,8 +684,8 @@ app.post('/api/paddle/create-checkout-session', async (req, res) => {
   }
 });
 
-// 2. Paddle Verify Transaction Endpoint
-app.get('/api/paddle/verify-transaction/:transactionId', async (req, res) => {
+// 2. Paddle Verify Transaction Endpoint (GET)
+registerGet('/api/paddle/verify-transaction/:transactionId', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
     const { transactionId } = req.params;
@@ -708,10 +747,10 @@ app.get('/api/paddle/verify-transaction/:transactionId', async (req, res) => {
 });
 
 // Also handle POST verify for frontend convenience
-app.post('/api/paddle/verify-transaction', async (req, res) => {
+registerPost('/api/paddle/verify-transaction', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
-    const { transactionId } = req.body;
+    const { transactionId } = req.body || {};
     console.log(`[PADDLE POST] Verifying transaction ID: ${transactionId}`);
     const paddle = getPaddleClient();
 
@@ -743,7 +782,7 @@ app.post('/api/paddle/verify-transaction', async (req, res) => {
 });
 
 // 3. Paddle Webhook Listener Endpoint
-app.post('/api/paddle/webhook', async (req, res) => {
+registerPost('/api/paddle/webhook', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
     const signature = req.headers['paddle-signature'] as string;
@@ -755,7 +794,7 @@ app.post('/api/paddle/webhook', async (req, res) => {
         try {
           const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
           const event: any = await paddle.webhooks.unmarshal(rawBody, secretKey, signature);
-          console.log('✅ Verified Paddle Webhook Event:', event?.eventType || event?.event_type);
+          console.log('Verified Paddle Webhook Event:', event?.eventType || event?.event_type);
           res.status(200).json({ success: true, eventType: event?.eventType || event?.event_type });
           return;
         } catch (unmarshalErr: any) {
@@ -775,10 +814,10 @@ app.post('/api/paddle/webhook', async (req, res) => {
 });
 
 // 4. Paddle Cancel Subscription Endpoint
-app.post('/api/paddle/cancel-subscription', async (req, res) => {
+registerPost('/api/paddle/cancel-subscription', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
-    const { subscriptionId } = req.body;
+    const { subscriptionId } = req.body || {};
     const paddle = getPaddleClient();
 
     if (paddle && subscriptionId && !subscriptionId.startsWith('sub_sim_')) {
@@ -800,10 +839,10 @@ app.post('/api/paddle/cancel-subscription', async (req, res) => {
 });
 
 // 5. Paddle Refund Endpoint
-app.post('/api/paddle/refund', async (req, res) => {
+registerPost('/api/paddle/refund', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
-    const { transactionId, reason = 'Customer request' } = req.body;
+    const { transactionId, reason = 'Customer request' } = req.body || {};
     const paddle = getPaddleClient();
 
     if (paddle && transactionId && !transactionId.startsWith('txn_pad_')) {
@@ -827,16 +866,23 @@ app.post('/api/paddle/refund', async (req, res) => {
   }
 });
 
-// Explicit API 404 handler - prevents returning HTML for any missing /api/* route
-app.all('/api/*', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.status(404).json({
-    success: false,
-    error: `API endpoint not found: ${req.method} ${req.path}`,
-  });
+// Explicit API 404 handler - prevents returning HTML for any missing API route
+app.use((req, res, next) => {
+  const isApi = req.path.startsWith('/api') || 
+                req.path.startsWith('/paddle') || 
+                req.path.startsWith('/gemini') || 
+                req.path.startsWith('/elevenlabs');
+  if (isApi) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(404).json({
+      success: false,
+      error: `API endpoint not found: ${req.method} ${req.originalUrl || req.path}`,
+    });
+  }
+  next();
 });
 
-// Boot server (standalone / local / container mode only)
+// Boot server (standalone / local container mode ONLY - NEVER inside Vercel or Lambda serverless)
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     try {
@@ -851,14 +897,21 @@ async function startServer() {
     }
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    const indexPath = path.join(distPath, 'index.html');
+    if (fs.existsSync(distPath)) {
+      app.use(express.static(distPath));
+    }
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(200).send('Speak with MZ Application Ready');
+      }
     });
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Speak with MZ server running on http://0.0.0.0:${PORT}`);
+    console.log(`Speak with MZ server running on http://0.0.0.0:${PORT}`);
   });
 }
 
