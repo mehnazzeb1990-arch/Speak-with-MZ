@@ -1,4 +1,5 @@
 import { Environment, Paddle } from '@paddle/paddle-node-sdk';
+import { getSanitizedPaddleApiKey, isPaddleSandbox } from './_utils';
 
 function parseRequestBody(req: any): any {
   if (req.body && typeof req.body === 'object') {
@@ -54,12 +55,11 @@ export default async function handler(req: any, res: any) {
     const currencyCode = isPKR ? 'PKR' : 'USD';
     const planName = isAdvanced ? 'Speak with MZ - Advanced Premium Plan' : 'Speak with MZ - Intermediate Premium Plan';
 
-    const rawEnv = (process.env.PADDLE_ENVIRONMENT || '').trim().toLowerCase();
-    const isSandbox = rawEnv === 'sandbox';
+    const isSandbox = isPaddleSandbox();
     const envMode = isSandbox ? 'sandbox' : 'production';
 
-    const apiKey = (process.env.PADDLE_API_KEY || '').trim();
-    const hasApiKey = Boolean(apiKey && apiKey !== '' && apiKey !== 'MY_PADDLE_API_KEY');
+    const apiKey = getSanitizedPaddleApiKey();
+    const hasApiKey = Boolean(apiKey);
 
     const intermediatePrice = (
       process.env.PADDLE_PRICE_INTERMEDIATE ||
@@ -78,7 +78,7 @@ export default async function handler(req: any, res: any) {
     // Isolated price selection based strictly on requested plan
     const selectedPriceId = isAdvanced ? advancedPrice : intermediatePrice;
 
-    // Safe diagnostic logging (NO secrets or tokens logged)
+    // Safe diagnostic logging (NO secrets, keys or tokens logged)
     console.log(`[PADDLE] plan = ${plan}`);
     console.log(`[PADDLE] currency = ${currency}`);
     console.log(`[PADDLE] API key configured = ${hasApiKey}`);
@@ -95,7 +95,7 @@ export default async function handler(req: any, res: any) {
     ).trim();
 
     if (!hasApiKey) {
-      console.error('[PADDLE] API key missing on server');
+      console.error('[PADDLE] API key missing or invalid on server');
       return res.status(500).json({
         success: false,
         error: 'Paddle API key is not configured on the server. Please set PADDLE_API_KEY in environment variables.',
@@ -103,7 +103,7 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // 1. Initialize Paddle Node SDK
+    // Initialize official Paddle Node SDK with clean raw API key
     console.log('[PADDLE] creating Paddle transaction');
     try {
       const env = isSandbox ? Environment.sandbox : Environment.production;
@@ -167,57 +167,6 @@ export default async function handler(req: any, res: any) {
         code: sdkErr.code,
         detail: sdkErr.detail,
       });
-
-      // Attempt Direct REST Fallback if SDK had an unexpected serialization issue
-      try {
-        const baseUrl = isSandbox ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
-        console.log(`[PADDLE REST] Attempting fallback REST call at ${baseUrl}/transactions`);
-
-        const requestPayload: any = selectedPriceId
-          ? {
-              items: [{ price_id: selectedPriceId, quantity: 1 }],
-              custom_data: { userId: String(userId || ''), plan: String(plan || '') },
-            }
-          : {
-              items: [
-                {
-                  quantity: 1,
-                  price: {
-                    name: planName,
-                    unit_price: { amount: amountStr, currency_code: currencyCode },
-                    product_id: isAdvanced ? 'pro_01' : 'pro_01',
-                  },
-                },
-              ],
-              custom_data: { userId: String(userId || ''), plan: String(plan || '') },
-            };
-
-        const paddleRes = await fetch(`${baseUrl}/transactions`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestPayload),
-        });
-
-        if (paddleRes.ok) {
-          const restData = await paddleRes.json();
-          const txnId = restData.data?.id;
-          const checkoutUrl = restData.data?.checkout?.url || `https://${isSandbox ? 'sandbox-' : ''}checkout.paddle.com/checkout/custom/${txnId}`;
-          console.log(`[PADDLE REST] Fallback transaction created = ${txnId}`);
-          return res.status(200).json({
-            success: true,
-            transactionId: txnId,
-            status: restData.data?.status,
-            checkoutUrl,
-            clientToken,
-            environment: envMode,
-          });
-        }
-      } catch (restErr) {
-        console.warn('[PADDLE REST] Fallback also failed:', restErr);
-      }
 
       return res.status(400).json({
         success: false,

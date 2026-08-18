@@ -1,4 +1,5 @@
 import { Environment, Paddle } from '@paddle/paddle-node-sdk';
+import { getSanitizedPaddleApiKey, isPaddleSandbox } from './_utils';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Content-Type', 'application/json');
@@ -32,11 +33,10 @@ export default async function handler(req: any, res: any) {
 
   console.log(`[PADDLE] Verifying transaction ID: ${transactionId}`);
 
-  const apiKey = (process.env.PADDLE_API_KEY || '').trim();
-  const rawEnv = (process.env.PADDLE_ENVIRONMENT || '').trim().toLowerCase();
-  const isSandbox = rawEnv === 'sandbox';
+  const apiKey = getSanitizedPaddleApiKey();
+  const isSandbox = isPaddleSandbox();
 
-  if (!apiKey || apiKey === 'MY_PADDLE_API_KEY') {
+  if (!apiKey) {
     console.error('[PADDLE] API key missing for verification');
     return res.status(500).json({
       verified: false,
@@ -79,33 +79,7 @@ export default async function handler(req: any, res: any) {
       subscriptionId: (transaction as any).subscriptionId || null,
     });
   } catch (sdkErr: any) {
-    console.warn('[PADDLE] SDK verify failed, trying REST fallback:', sdkErr.message);
-
-    try {
-      const baseUrl = isSandbox ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
-      const paddleRes = await fetch(`${baseUrl}/transactions/${transactionId}`, {
-        headers: { 'Authorization': `Bearer ${apiKey}` },
-      });
-
-      if (paddleRes.ok) {
-        const restData = await paddleRes.json();
-        const txn = restData.data;
-        const isPaid = txn?.status === 'completed' || txn?.status === 'paid';
-        const plan = txn?.custom_data?.plan || 'intermediate_premium';
-
-        console.log(`[PADDLE REST] Verified ${transactionId}: status=${txn?.status}, verified=${isPaid}`);
-        return res.status(200).json({
-          status: txn?.status,
-          verified: isPaid,
-          plan,
-          transactionId: txn?.id,
-          customerEmail: txn?.customer?.email || null,
-          subscriptionId: txn?.subscription_id || null,
-        });
-      }
-    } catch (restErr) {
-      console.warn('[PADDLE REST] REST verification failed:', restErr);
-    }
+    console.warn('[PADDLE] SDK verify error:', sdkErr.message);
 
     return res.status(400).json({
       verified: false,

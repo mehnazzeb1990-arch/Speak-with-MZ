@@ -1,4 +1,5 @@
 import { Environment, Paddle } from '@paddle/paddle-node-sdk';
+import { getSanitizedPaddleApiKey, isPaddleSandbox } from './_utils';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Content-Type', 'application/json');
@@ -10,10 +11,10 @@ export default async function handler(req: any, res: any) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const { transactionId, reason = 'Customer request' } = body;
-    const apiKey = (process.env.PADDLE_API_KEY || '').trim();
-    const isSandbox = (process.env.PADDLE_ENVIRONMENT || '').trim().toLowerCase() === 'sandbox';
+    const apiKey = getSanitizedPaddleApiKey();
+    const isSandbox = isPaddleSandbox();
 
-    if (apiKey && apiKey !== 'MY_PADDLE_API_KEY' && transactionId) {
+    if (apiKey && transactionId) {
       try {
         const env = isSandbox ? Environment.sandbox : Environment.production;
         const paddle = new Paddle(apiKey, { environment: env });
