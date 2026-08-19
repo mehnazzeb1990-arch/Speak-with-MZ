@@ -41,9 +41,6 @@ function getPaddleClient(): Paddle | null {
         const env = isSandbox ? Environment.sandbox : Environment.production;
         paddleClient = new Paddle(key, {
           environment: env,
-          customHeaders: {
-            Authorization: `Bearer ${key}`,
-          },
         });
         console.log(`[PADDLE] Initialized Paddle SDK in ${isSandbox ? 'sandbox' : 'production'} mode`);
       } catch (err: any) {

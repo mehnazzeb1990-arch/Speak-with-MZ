@@ -94,6 +94,17 @@ export default async function handler(req: any, res: any) {
     const apiKey = getSanitizedPaddleApiKey();
     const hasApiKey = Boolean(apiKey);
 
+    // STEP 4 - Safe diagnostic logging immediately before the Paddle request (NEVER log the key)
+    const diagnostics = {
+      hasApiKey: Boolean(apiKey),
+      startsWithPdl: apiKey.startsWith('pdl_'),
+      startsWithLiveApiKey: apiKey.startsWith('pdl_live_apikey_'),
+      keyLength: apiKey.length,
+      environment: process.env.PADDLE_ENVIRONMENT || 'production',
+      authenticationMethod: 'Paddle SDK (native)',
+    };
+    console.log('[PADDLE] DIAGNOSTICS:', JSON.stringify(diagnostics));
+
     const intermediatePrice = (
       process.env.PADDLE_PRICE_INTERMEDIATE ||
       process.env.NEXT_PUBLIC_PADDLE_PRICE_INTERMEDIATE ||
@@ -111,18 +122,9 @@ export default async function handler(req: any, res: any) {
     // Isolated price selection based strictly on requested plan
     const selectedPriceId = isAdvanced ? advancedPrice : intermediatePrice;
 
-    // Safe diagnostic logging (ONLY boolean checks, prefix checks, and string length - NEVER the secret key)
     console.log(`[PADDLE] plan = ${plan}`);
     console.log(`[PADDLE] currency = ${currency}`);
-    console.log(`[PADDLE] PADDLE_API_KEY exists = ${hasApiKey}`);
-    console.log(`[PADDLE] PADDLE_API_KEY starts with 'pdl_' = ${apiKey.startsWith('pdl_')}`);
-    console.log(`[PADDLE] PADDLE_API_KEY contains 'live_' = ${apiKey.includes('live_')}`);
-    console.log(`[PADDLE] PADDLE_API_KEY contains 'sdbx_' = ${apiKey.includes('sdbx_')}`);
-    console.log(`[PADDLE] PADDLE_API_KEY length = ${apiKey.length}`);
-    console.log(`[PADDLE] intermediate price configured = ${Boolean(intermediatePrice)}`);
-    console.log(`[PADDLE] advanced price configured = ${Boolean(advancedPrice)}`);
     console.log(`[PADDLE] selected price configured = ${Boolean(selectedPriceId)}`);
-    console.log(`[PADDLE] environment = ${envMode}`);
 
     const clientToken = (
       process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN ||
@@ -140,15 +142,13 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // Initialize official Paddle Node SDK with clean raw API key and customHeaders providing exact Authorization: Bearer <key>
-    console.log('[PADDLE] creating Paddle transaction');
+    // Initialize official Paddle Node SDK with clean raw API key.
+    // NOTE: SDK itself creates Authorization: `bearer ${apiKey}`. We do NOT pass duplicate customHeaders.
+    console.log('[PADDLE] creating Paddle transaction via SDK');
     try {
       const env = isSandbox ? Environment.sandbox : Environment.production;
       const paddle = new Paddle(apiKey, {
         environment: env,
-        customHeaders: {
-          Authorization: `Bearer ${apiKey}`,
-        },
       });
 
       let transaction: any;

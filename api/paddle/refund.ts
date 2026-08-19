@@ -35,9 +35,6 @@ export default async function handler(req: any, res: any) {
         const env = isSandbox ? Environment.sandbox : Environment.production;
         const paddle = new Paddle(apiKey, {
           environment: env,
-          customHeaders: {
-            Authorization: `Bearer ${apiKey}`,
-          },
         });
         const refund = await (paddle as any).refunds.create({
           transactionId,
