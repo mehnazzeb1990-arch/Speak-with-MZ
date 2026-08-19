@@ -876,6 +876,46 @@ registerPost('/api/paddle/refund', async (req, res) => {
   }
 });
 
+// Diagnostic Endpoint: Test Live Paddle REST Auth
+app.get('/api/paddle/test-auth', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  const rawApiKey = (process.env.PADDLE_API_KEY || '').trim();
+
+  try {
+    const response = await fetch('https://api.paddle.com/event-types', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${rawApiKey}`,
+        'Paddle-Version': '1',
+      },
+    });
+
+    let parsedResponse: any = null;
+    try {
+      parsedResponse = await response.json();
+    } catch {
+      parsedResponse = { error: 'Failed to parse JSON response from Paddle' };
+    }
+
+    return res.status(response.status).json({
+      ok: response.ok,
+      paddleStatus: response.status,
+      paddleResponse: parsedResponse,
+      hasApiKey: Boolean(rawApiKey),
+      keyStartsCorrectly: rawApiKey.startsWith('pdl_live_apikey_'),
+      keyLength: rawApiKey.length,
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      ok: false,
+      error: err.message || 'Diagnostic request failed',
+      hasApiKey: Boolean(rawApiKey),
+      keyStartsCorrectly: rawApiKey.startsWith('pdl_live_apikey_'),
+      keyLength: rawApiKey.length,
+    });
+  }
+});
+
 // Explicit API 404 handler - prevents returning HTML for any missing API route
 app.use((req, res, next) => {
   const isApi = req.path.startsWith('/api') || 
