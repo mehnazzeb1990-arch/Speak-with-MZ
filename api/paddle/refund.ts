@@ -1,5 +1,21 @@
 import { Environment, Paddle } from '@paddle/paddle-node-sdk';
-import { getSanitizedPaddleApiKey, isPaddleSandbox } from './_utils';
+
+function getSanitizedPaddleApiKey(): string {
+  let key = (process.env.PADDLE_API_KEY || '').trim();
+  if (!key || key === 'MY_PADDLE_API_KEY') return '';
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1).trim();
+  }
+  if (key.toLowerCase().startsWith('bearer ')) {
+    key = key.slice(7).trim();
+  }
+  key = key.replace(/[\r\n\t]/g, '').trim();
+  return key;
+}
+
+function isPaddleSandbox(): boolean {
+  return (process.env.PADDLE_ENVIRONMENT || '').trim().toLowerCase() === 'sandbox';
+}
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Content-Type', 'application/json');
