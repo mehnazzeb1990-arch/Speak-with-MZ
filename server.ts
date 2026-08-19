@@ -26,12 +26,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 let paddleClient: Paddle | null = null;
 function getPaddleClient(): Paddle | null {
   if (!paddleClient) {
-    const key = process.env.PADDLE_API_KEY;
-    if (key && key !== '' && key !== 'MY_PADDLE_API_KEY') {
+    let key = (process.env.PADDLE_API_KEY || '').trim();
+    if (key && key !== 'MY_PADDLE_API_KEY') {
+      if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+        key = key.slice(1, -1).trim();
+      }
+      if (key.toLowerCase().startsWith('bearer ')) {
+        key = key.slice(7).trim();
+      }
+      key = key.replace(/[\r\n\t]/g, '').trim();
+
       try {
         const isSandbox = (process.env.PADDLE_ENVIRONMENT || '').toLowerCase() === 'sandbox';
         const env = isSandbox ? Environment.sandbox : Environment.production;
-        paddleClient = new Paddle(key, { environment: env });
+        paddleClient = new Paddle(key, {
+          environment: env,
+          customHeaders: {
+            Authorization: `Bearer ${key}`,
+          },
+        });
         console.log(`[PADDLE] Initialized Paddle SDK in ${isSandbox ? 'sandbox' : 'production'} mode`);
       } catch (err: any) {
         console.error('[PADDLE] Failed to initialize Paddle SDK:', err.message || err);

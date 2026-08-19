@@ -33,7 +33,12 @@ export default async function handler(req: any, res: any) {
     if (apiKey && subscriptionId) {
       try {
         const env = isSandbox ? Environment.sandbox : Environment.production;
-        const paddle = new Paddle(apiKey, { environment: env });
+        const paddle = new Paddle(apiKey, {
+          environment: env,
+          customHeaders: {
+            Authorization: `Bearer ${apiKey}`,
+          },
+        });
         const sub = await paddle.subscriptions.cancel(subscriptionId, { effectiveFrom: 'next_billing_period' });
         return res.status(200).json({ success: true, status: sub.status });
       } catch (err: any) {

@@ -111,10 +111,14 @@ export default async function handler(req: any, res: any) {
     // Isolated price selection based strictly on requested plan
     const selectedPriceId = isAdvanced ? advancedPrice : intermediatePrice;
 
-    // Safe diagnostic logging (NO secrets, keys or tokens logged)
+    // Safe diagnostic logging (ONLY boolean checks, prefix checks, and string length - NEVER the secret key)
     console.log(`[PADDLE] plan = ${plan}`);
     console.log(`[PADDLE] currency = ${currency}`);
-    console.log(`[PADDLE] API key configured = ${hasApiKey}`);
+    console.log(`[PADDLE] PADDLE_API_KEY exists = ${hasApiKey}`);
+    console.log(`[PADDLE] PADDLE_API_KEY starts with 'pdl_' = ${apiKey.startsWith('pdl_')}`);
+    console.log(`[PADDLE] PADDLE_API_KEY contains 'live_' = ${apiKey.includes('live_')}`);
+    console.log(`[PADDLE] PADDLE_API_KEY contains 'sdbx_' = ${apiKey.includes('sdbx_')}`);
+    console.log(`[PADDLE] PADDLE_API_KEY length = ${apiKey.length}`);
     console.log(`[PADDLE] intermediate price configured = ${Boolean(intermediatePrice)}`);
     console.log(`[PADDLE] advanced price configured = ${Boolean(advancedPrice)}`);
     console.log(`[PADDLE] selected price configured = ${Boolean(selectedPriceId)}`);
@@ -136,11 +140,16 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // Initialize official Paddle Node SDK with clean raw API key
+    // Initialize official Paddle Node SDK with clean raw API key and customHeaders providing exact Authorization: Bearer <key>
     console.log('[PADDLE] creating Paddle transaction');
     try {
       const env = isSandbox ? Environment.sandbox : Environment.production;
-      const paddle = new Paddle(apiKey, { environment: env });
+      const paddle = new Paddle(apiKey, {
+        environment: env,
+        customHeaders: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      });
 
       let transaction: any;
       if (selectedPriceId) {
