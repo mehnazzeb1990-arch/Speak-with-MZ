@@ -8,13 +8,11 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({ ok: true });
   }
 
-  const rawApiKey = (process.env.PADDLE_API_KEY || '').trim();
-
   try {
     const response = await fetch('https://api.paddle.com/event-types', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${rawApiKey}`,
+        Authorization: `Bearer ${process.env.PADDLE_API_KEY}`,
         'Paddle-Version': '1',
       },
     });
@@ -30,17 +28,17 @@ export default async function handler(req: any, res: any) {
       ok: response.ok,
       paddleStatus: response.status,
       paddleResponse: parsedResponse,
-      hasApiKey: Boolean(rawApiKey),
-      keyStartsCorrectly: rawApiKey.startsWith('pdl_live_apikey_'),
-      keyLength: rawApiKey.length,
+      hasApiKey: Boolean(process.env.PADDLE_API_KEY),
+      startsWithLiveApiKey: process.env.PADDLE_API_KEY?.startsWith('pdl_live_apikey_'),
+      keyLength: process.env.PADDLE_API_KEY?.length,
     });
   } catch (err: any) {
     return res.status(500).json({
       ok: false,
       error: err.message || 'Diagnostic request failed',
-      hasApiKey: Boolean(rawApiKey),
-      keyStartsCorrectly: rawApiKey.startsWith('pdl_live_apikey_'),
-      keyLength: rawApiKey.length,
+      hasApiKey: Boolean(process.env.PADDLE_API_KEY),
+      startsWithLiveApiKey: process.env.PADDLE_API_KEY?.startsWith('pdl_live_apikey_'),
+      keyLength: process.env.PADDLE_API_KEY?.length,
     });
   }
 }
